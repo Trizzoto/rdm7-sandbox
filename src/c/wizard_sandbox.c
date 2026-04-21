@@ -753,12 +753,12 @@ static void _show_step3(void) {
     lv_obj_t *o3s = lv_label_create(s_step3);
     lv_label_set_long_mode(o3s, LV_LABEL_LONG_WRAP);
     lv_obj_set_width(o3s, BTN_W - 30);
-    /* Use an obvious-placeholder SSID pattern so customers copying the
-     * text don't assume every RDM-7 is "7B0D" — the real device's
-     * last four hex chars come from the MAC. */
+    /* RDM7-XXXX is the obvious-placeholder form of what the firmware
+     * shows — on a real device the "XXXX" is the last four hex chars
+     * of the MAC (e.g. RDM7-7B0D). Users see their actual SSID on
+     * the splash screen. */
     lv_label_set_text(o3s,
         "Connect to \"RDM7-XXXX\"  /  password: rdm7dash\n"
-        "(your device shows its own 4-char ID on the splash screen)\n"
         "Then open http://192.168.4.1 in a browser");
     lv_obj_align(o3s, LV_ALIGN_TOP_LEFT, 30, 250);
     lv_obj_set_style_text_font(o3s, THEME_FONT_TINY, 0);

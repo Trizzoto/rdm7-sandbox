@@ -1,79 +1,64 @@
 /**
- * voiceover.ts — thin wrapper around the Web Speech API.
+ * voiceover.ts — caption-pacing adapter (no audio).
  *
- * v1: browser-built-in SpeechSynthesis. Free, zero setup, decent quality
- *      on Chrome / Edge / Safari. Quality varies by OS voice.
- * v2 plan: swap this implementation for a fetch-based ElevenLabs adapter
- *      that plays pre-baked MP3s from /tours/<id>/audio/<step>.mp3.
- *      Interface stays the same so the tutorial-runner doesn't change.
+ * The tour runtime calls `speak(text)` to block advancement until the
+ * "voice" has "finished." With audio removed, we simulate a human
+ * reading pace so tour timing still works without anyone hearing a
+ * robot voice. Default cadence is ~17 chars/sec which matches a
+ * moderately-paced narrator.
+ *
+ * Audio support is intentionally gone for v0.1.x — captions alone
+ * read cleaner on embed pages, don't interrupt the user's own audio
+ * (music, calls, other tabs), and don't need TTS permission prompts.
+ * If you ever want it back, swap `createVoice()` for a Web Speech
+ * or ElevenLabs implementation; the interface is stable.
  */
 
 export interface Voice {
+  /** Resolve after a read-pace timeout proportional to caption length. */
   speak(text: string): Promise<void>;
+  /** Cancel a pending speak — used when Pause / Back / step-jump fire. */
   cancel(): void;
-  /** Release any long-lived resources (event listeners, cached voices). */
+  /** Release any long-lived resources (listeners, cached state). */
   dispose?(): void;
 }
 
-/** Web Speech API implementation. */
-class WebSpeechVoice implements Voice {
-  private voice: SpeechSynthesisVoice | null = null;
-  private voicesChangedHandler: () => void;
+/** Minimum time a caption stays on screen, even for a 3-word line, so
+ *  readers aren't whiplashed through fast steps. */
+const MIN_READ_MS = 1200;
+/** Rough reading pace in milliseconds per character. 60 ms/char ≈
+ *  17 chars/sec ≈ 3 words/sec — comfortable silent-reading speed. */
+const MS_PER_CHAR = 60;
 
-  constructor(private lang = 'en-US') {
-    this.loadVoice();
-    // Some browsers populate voices asynchronously. Store the handler
-    // so dispose() can remove it — otherwise every component instance
-    // leaks a listener on page-level `window.speechSynthesis`.
-    this.voicesChangedHandler = () => this.loadVoice();
-    window.speechSynthesis.addEventListener('voiceschanged', this.voicesChangedHandler);
-  }
-
-  dispose() {
-    window.speechSynthesis.removeEventListener('voiceschanged', this.voicesChangedHandler);
-    this.cancel();
-  }
-
-  private loadVoice() {
-    const voices = window.speechSynthesis.getVoices();
-    this.voice =
-      voices.find((v) => v.lang === this.lang && v.name.includes('Natural')) ??
-      voices.find((v) => v.lang === this.lang) ??
-      voices[0] ??
-      null;
-  }
+class SilentVoice implements Voice {
+  private pending: ReturnType<typeof setTimeout> | null = null;
 
   speak(text: string): Promise<void> {
+    this.cancel();
+    const duration = Math.max(MIN_READ_MS, text.length * MS_PER_CHAR);
     return new Promise((resolve) => {
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = this.lang;
-      u.rate = 1.0;
-      u.pitch = 1.0;
-      if (this.voice) u.voice = this.voice;
-      u.onend = () => resolve();
-      u.onerror = () => resolve(); // don't block the tour on TTS errors
-      window.speechSynthesis.speak(u);
+      this.pending = setTimeout(() => {
+        this.pending = null;
+        resolve();
+      }, duration);
     });
   }
 
   cancel() {
-    window.speechSynthesis.cancel();
+    if (this.pending !== null) {
+      clearTimeout(this.pending);
+      this.pending = null;
+    }
+  }
+
+  dispose() {
+    this.cancel();
   }
 }
 
-/** No-op for environments without TTS (jsdom tests, muted mode). */
-class SilentVoice implements Voice {
-  async speak(_text: string): Promise<void> {
-    /* no-op */
-  }
-  cancel() {
-    /* no-op */
-  }
-}
-
-export function createVoice(kind: 'web-speech' | 'silent' = 'web-speech'): Voice {
-  if (kind === 'silent' || typeof window === 'undefined' || !window.speechSynthesis) {
-    return new SilentVoice();
-  }
-  return new WebSpeechVoice();
+/** Retained for signature compatibility — the `kind` arg is ignored
+ *  in v0.1.x (all variants are silent). Kept so host pages wiring up
+ *  future audio modes don't have to change imports. */
+export function createVoice(_kind: 'silent' | 'web-speech' = 'silent'): Voice {
+  return new SilentVoice();
 }

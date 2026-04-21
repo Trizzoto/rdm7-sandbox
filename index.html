@@ -3,114 +3,248 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RDM-7 Sandbox — Dev</title>
+  <title>RDM-7 Sandbox — Guided Tour</title>
+
+  <!-- Studio design system: Sora for UI, JetBrains Mono for status/code.
+       Matches the fonts used on studio.realtimedatamonitoring.com.au
+       so embeds feel native. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+
   <style>
-    :root { color-scheme: dark; }
+    :root {
+      color-scheme: dark;
+      --black:     #060606;
+      --surface:   #111111;
+      --surface-2: #1a1a1a;
+      --surface-3: #222222;
+      --border:    #1e1e1e;
+      --text:      #e8e8e8;
+      --text-dim:  #777777;
+      --text-faint:#444444;
+      --accent:    #cc0000;
+      --accent-hot:#ff1a1a;
+    }
     * { box-sizing: border-box; }
     html, body { height: 100%; margin: 0; }
     body {
       min-height: 100vh;
-      font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: var(--black);
+      color: var(--text);
+      font-family: 'Sora', ui-sans-serif, system-ui, -apple-system, sans-serif;
+      font-weight: 400;
+      font-size: 15px;
+      line-height: 1.6;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Studio's signature ambient red glow, bottom-right corner. */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
       background:
-        radial-gradient(1200px 700px at 10% -10%, rgba(33,150,243,0.12), transparent 60%),
-        radial-gradient(900px 600px at 90% 110%, rgba(61,216,255,0.10), transparent 60%),
-        linear-gradient(180deg, #070b14 0%, #0c1121 100%);
-      color: #e8edf7;
-      padding: 40px 20px 80px;
+        radial-gradient(900px 600px at 110% 110%, rgba(204, 0, 0, 0.07), transparent 60%),
+        radial-gradient(600px 400px at -10% -10%, rgba(204, 0, 0, 0.03), transparent 60%);
     }
-    header {
-      max-width: 900px; margin: 0 auto 28px;
-      display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
-      flex-wrap: wrap;
+
+    /* Glass top bar, matches the Studio header treatment. Grid with
+     * brand anchored left, picker + links anchored right; on narrow
+     * viewports (< 720px) the auxiliary links collapse so the picker
+     * keeps its room. */
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(6, 6, 6, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      min-height: 60px;
+      display: flex; align-items: center;
+      padding: 0 24px;
+      gap: 20px;
     }
-    .brand {
-      display: flex; align-items: baseline; gap: 12px;
+    .nav-brand {
+      display: flex; align-items: baseline; gap: 10px;
+      flex-shrink: 0;
     }
-    .brand-mark {
-      letter-spacing: 0.3em;
-      color: #3dd8ff;
+    .nav-brand .mark {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 13px;
       font-weight: 700;
+      letter-spacing: 0.28em;
+      color: var(--text);
+    }
+    .nav-brand .sep {
+      color: var(--accent);
+      font-weight: 800;
+    }
+    .nav-brand .sub {
+      font-family: 'Sora', sans-serif;
       font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 0;
+      color: var(--text-dim);
     }
-    h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: 0.3px; }
-    .tag {
-      font-size: 12px; color: #9aa7c2;
-      padding: 4px 10px;
-      background: rgba(61, 216, 255, 0.10);
-      border: 1px solid rgba(61, 216, 255, 0.25);
-      border-radius: 999px;
+    .nav-right {
+      margin-left: auto;
+      display: flex; align-items: center; gap: 20px;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-dim);
     }
+    .nav-right a {
+      color: var(--text-dim);
+      text-decoration: none;
+      transition: color .15s;
+    }
+    .nav-right a:hover { color: var(--text); }
+
+    @media (max-width: 720px) {
+      .nav { padding: 0 16px; gap: 12px; }
+      .nav-brand .sub { display: none; }
+      .nav-right { gap: 12px; }
+      .nav-link { display: none; }
+    }
+    @media (max-width: 540px) {
+      .tour-picker-label { display: none; }
+      .nav-brand .mark { letter-spacing: 0.2em; font-size: 12px; }
+    }
+
+    /* Tour picker styled as a monospace control — feels like a Studio
+     * toolbar cell. Sharp corners, low contrast, red focus ring. */
     .tour-picker {
-      display: inline-flex; align-items: center; gap: 8px;
-      font-size: 12px; color: #9aa7c2;
-      letter-spacing: 0.08em; text-transform: uppercase;
+      display: inline-flex; align-items: center; gap: 10px;
+    }
+    .tour-picker-label {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 10px; letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-dim);
     }
     .tour-picker select {
-      background: rgba(61, 216, 255, 0.05);
-      border: 1px solid rgba(61, 216, 255, 0.25);
-      color: #e8edf7;
-      border-radius: 999px;
-      padding: 6px 28px 6px 12px;
-      font: inherit; font-size: 13px;
-      letter-spacing: 0; text-transform: none;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 2px;
+      padding: 6px 28px 6px 10px;
+      font-family: inherit;
+      font-size: 13px;
       cursor: pointer;
       appearance: none;
-      background-image: linear-gradient(45deg, transparent 50%, #9aa7c2 50%),
-                        linear-gradient(135deg, #9aa7c2 50%, transparent 50%);
+      background-image:
+        linear-gradient(45deg, transparent 50%, #777 50%),
+        linear-gradient(135deg, #777 50%, transparent 50%);
       background-position: calc(100% - 14px) 50%, calc(100% - 9px) 50%;
       background-size: 5px 5px;
       background-repeat: no-repeat;
+      transition: border-color .15s;
     }
-    .tour-picker select:hover { border-color: rgba(61, 216, 255, 0.5); }
-    .intro {
-      max-width: 900px; margin: 0 auto 28px;
-      color: #9aa7c2;
+    .tour-picker select:hover  { border-color: var(--text-faint); }
+    .tour-picker select:focus  { outline: none; border-color: var(--accent); }
+
+    /* Content area */
+    main {
+      position: relative; z-index: 1;
+      padding: 56px 28px 96px;
+      max-width: 900px; margin: 0 auto;
     }
-    .intro code {
-      background: rgba(255,255,255,0.06);
-      padding: 2px 6px; border-radius: 4px;
+    .hero {
+      margin-bottom: 44px;
+    }
+    .hero-eyebrow {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 10px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+    h1 {
+      margin: 0 0 18px;
+      font-size: clamp(2.2rem, 4vw, 3rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.05;
+    }
+    .hero-body {
+      max-width: 640px;
+      color: var(--text-dim);
+      font-weight: 300;
+      font-size: 16px;
+      line-height: 1.7;
+    }
+    .hero-body code {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      padding: 2px 8px;
+      border-radius: 2px;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
       font-size: 13px;
+      color: var(--text);
     }
+    .hero-body strong { color: var(--text); font-weight: 500; }
+
     footer {
-      max-width: 900px; margin: 28px auto 0;
-      color: #5c6578; font-size: 12px;
+      position: relative; z-index: 1;
+      margin-top: 56px;
+      padding: 24px 28px 40px;
+      max-width: 900px; margin-left: auto; margin-right: auto;
+      color: var(--text-faint);
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      border-top: 1px solid var(--border);
       display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
     }
-    footer a { color: #9aa7c2; text-decoration: none; }
-    footer a:hover { color: #e8edf7; }
+    footer a { color: var(--text-dim); text-decoration: none; }
+    footer a:hover { color: var(--text); }
   </style>
 </head>
 <body>
-  <header>
-    <div class="brand">
-      <span class="brand-mark">R D M  ·  7</span>
-      <h1>Sandbox — Guided Tour Dev</h1>
+  <nav class="nav">
+    <div class="nav-brand">
+      <span class="mark">RDM<span class="sep">·</span>7</span>
+      <span class="sub">Sandbox</span>
     </div>
-    <label class="tour-picker">
-      <span>Tour</span>
-      <select id="tour-select"></select>
-    </label>
-  </header>
+    <div class="nav-right">
+      <div class="tour-picker">
+        <span class="tour-picker-label">Tour</span>
+        <select id="tour-select" aria-label="Select tour"></select>
+      </div>
+      <a class="nav-link" href="https://studio.realtimedatamonitoring.com.au/">Studio</a>
+      <a class="nav-link" href="https://github.com/Trizzoto/rdm7-sandbox">GitHub</a>
+    </div>
+  </nav>
 
-  <p class="intro">
-    The dash firmware compiled to WebAssembly, running the first-run wizard in
-    your browser with AI voiceover and a scripted pointer injector. Hit
-    <code>▶ Play</code> to start; use the step dots to jump around.
-  </p>
+  <main>
+    <section class="hero">
+      <div class="hero-eyebrow">Guided Tour — First Boot</div>
+      <h1>Your dash, in the browser.</h1>
+      <p class="hero-body">
+        The RDM-7 firmware compiled to WebAssembly, driving the real first-run wizard.
+        Scripted clicks and captions walk the user through CAN setup, ECU selection, and
+        WiFi onboarding — no hardware required. Hit <strong>Play</strong> to start; scrub
+        with the dots to jump around.
+      </p>
+    </section>
 
-  <dash-sandbox
-    id="sb"
-    script="/tours/first-boot.json"
-    wasm="/rdm7-sandbox.wasm"
-  ></dash-sandbox>
+    <dash-sandbox
+      id="sb"
+      script="/tours/first-boot.json"
+      wasm="/rdm7-sandbox.wasm"
+    ></dash-sandbox>
+  </main>
 
   <footer>
-    <span>Replaces recorded user-guide videos for RDM Web Studio.</span>
-    <span>
-      <a href="https://github.com/Trizzoto/rdm7-sandbox">GitHub</a>
-      &nbsp;·&nbsp;
-      <a href="https://studio.realtimedatamonitoring.com.au/">Studio</a>
-    </span>
+    <span>Replaces recorded user-guide videos · Part of the RDM-7 project</span>
+    <span>v0.1.0</span>
   </footer>
 
   <script type="module">
@@ -129,7 +263,6 @@
       }
 
       select.addEventListener('change', async () => {
-        // Wait for boot if the user opens the select before WASM is ready.
         const waitForReady = () => new Promise(r => {
           const check = () => (sb.runner ? r() : setTimeout(check, 50));
           check();
