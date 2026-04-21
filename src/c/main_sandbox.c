@@ -12,6 +12,7 @@
  */
 #include <emscripten.h>
 #include <stdio.h>
+#include <sys/stat.h>
 
 #include "esp_idf_shim.h"
 #include "lvgl.h"
@@ -24,6 +25,12 @@ extern void pointer_injector_init(void);
 extern void pointer_injector_set(int16_t x, int16_t y, bool pressed);
 
 extern void hal_init(void);
+extern void font_stubs_init(void);
+
+/* Firmware subsystems (widget + signal + font registries). */
+extern void font_manager_init(void);
+extern void signal_registry_init(void);
+extern void signal_inject_test_value(const char *name, float v);
 
 static double s_last_tick_ms = 0;
 
@@ -46,14 +53,36 @@ void sandbox_set_pointer(int x, int y, int pressed) {
     pointer_injector_set((int16_t)x, (int16_t)y, pressed != 0);
 }
 
+/* JS bridge: inject a synthetic signal value. Wraps the firmware's
+ * signal_inject_test_value so host pages can drive the dashboard
+ * from mock CAN data generated in JavaScript. */
+EMSCRIPTEN_KEEPALIVE
+void sandbox_inject_signal(const char *name, float value) {
+    if (!name) return;
+    signal_inject_test_value(name, value);
+}
+
 int main(void) {
-    printf("[sandbox] main: initialising LVGL…\n");
+    printf("[sandbox] main: initialising LVGL\n");
     lv_init();
 
-    printf("[sandbox] main: initialising HAL…\n");
+    printf("[sandbox] main: initialising HAL\n");
     hal_init();
 
-    printf("[sandbox] main: registering virtual pointer indev…\n");
+    /* MEMFS scaffolding so fopen() calls from font_manager / widgets
+     * succeed. No actual files shipped yet — tours that need custom
+     * fonts or images can register them via Module.FS at runtime. */
+    mkdir("/lfs",           0755);
+    mkdir("/lfs/fonts",     0755);
+    mkdir("/lfs/images",    0755);
+    mkdir("/lfs/layouts",   0755);
+
+    /* Firmware subsystems — have to be live before any widget create. */
+    font_stubs_init();
+    font_manager_init();
+    signal_registry_init();
+
+    printf("[sandbox] main: registering virtual pointer indev\n");
     pointer_injector_init();
 
     printf("[sandbox] main: starting first-run wizard\n");

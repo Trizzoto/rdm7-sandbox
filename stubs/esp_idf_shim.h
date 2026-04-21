@@ -133,6 +133,13 @@ static inline TickType_t xTaskGetTickCount(void)                      { return 0
  *  wifi_manager API). Keep these so firmware headers compile. ── */
 typedef int wifi_auth_mode_t;
 
+/* ── CAN TX stub — widget_button.c / widget_toggle.c call this to
+ *  send CAN frames when a user taps them. No-op in the sandbox. ── */
+static inline esp_err_t can_transmit_frame(uint32_t id, const uint8_t *data, uint8_t len) {
+    (void)id; (void)data; (void)len;
+    return ESP_OK;
+}
+
 /* ── LittleFS ── */
 typedef struct {
     const char *base_path;

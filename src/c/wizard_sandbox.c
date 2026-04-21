@@ -16,6 +16,8 @@
  * theme.h exactly so the sandbox frame visually matches the device. */
 
 #include "lvgl.h"
+#include "cJSON.h"
+#include "esp_idf_shim.h"
 #include <emscripten.h>
 #include <stdio.h>
 #include <string.h>
@@ -128,47 +130,12 @@ static lv_obj_t *s_wifi_list    = NULL;
 static lv_timer_t *s_wifi_connect_timer = NULL;
 static char      s_selected_ssid[33] = "";
 
-/* Dashboard scene — mocks the firmware's default layout running with
- * plausible CAN driving data. See default_layout.c for the exact
- * widget positions + signal bindings we're reproducing. */
-#define DASH_PANEL_COUNT 8
-typedef struct {
-    const char *label;
-    const char *unit;
-    int         decimals;
-    float       baseline;  /* mock centre value */
-    float       amplitude; /* mock oscillation */
-    uint32_t    accent_rgb;/* 0 = no tinted border; otherwise 0xRRGGBB */
-} dash_panel_def_t;
-
-/* Labels match default_layout.c's panel_cfg[] (Haltech Nexus binding). */
-static const dash_panel_def_t DASH_PANELS[DASH_PANEL_COUNT] = {
-    { "IGNITION", "",    1, 18.0f,   6.0f,  0          },  /* 0: top-left   */
-    { "MAP",      "kPa", 1, 95.0f,  40.0f,  0          },  /* 1: mid-left   */
-    { "THROTTLE", "%",   0, 45.0f,  40.0f,  0          },  /* 2: bot-left   */
-    { "COOLANT",  "C",   1, 82.0f,   4.0f,  0x2196F3   },  /* 3: bot-left   */
-    { "INTAKE",   "C",   0, 34.0f,   6.0f,  0          },  /* 4: top-right  */
-    { "LAMBDA",   "",    3,  0.92f,  0.08f, 0          },  /* 5: mid-right  */
-    { "OIL TEMP", "C",   1, 95.0f,   5.0f,  0          },  /* 6: bot-right  */
-    { "FUEL TRIM","%",   1,  1.5f,   2.0f,  0          },  /* 7: bot-right  */
-};
-
-/* Positions lifted verbatim from default_layout.c's s_panel_pos[]. */
-static const struct { int16_t x, y; } DASH_PANEL_POS[DASH_PANEL_COUNT] = {
-    {-312, -26}, {-146, -26}, {-312, 82}, {-146, 82},
-    { 146, -26}, { 312, -26}, { 146, 82}, { 312, 82},
-};
-
+/* Dashboard scene — renders the firmware's default layout via the
+ * REAL widget code path (layout_manager_apply_json), then injects
+ * mock signal values on a timer to simulate a drive cycle. The
+ * pixels on screen are the same ones the device would draw; only
+ * the CAN source is synthetic. */
 static lv_obj_t *s_dash_screen   = NULL;
-static lv_obj_t *s_dash_rpm_bar  = NULL;
-static lv_obj_t *s_dash_rpm_text = NULL;
-static lv_obj_t *s_dash_speed    = NULL;
-static lv_obj_t *s_dash_gear     = NULL;
-static lv_obj_t *s_dash_coolant_bar = NULL;
-static lv_obj_t *s_dash_throttle_bar = NULL;
-static lv_obj_t *s_dash_panel_values[DASH_PANEL_COUNT] = {NULL};
-static lv_obj_t *s_dash_ind_l    = NULL;
-static lv_obj_t *s_dash_ind_r    = NULL;
 static lv_timer_t *s_dash_timer  = NULL;
 static double   s_dash_started_ms = 0;
 
@@ -818,11 +785,24 @@ static void _show_step3(void) {
 
 /* ── Dashboard scene ──────────────────────────────────────────────────
  *
- * Shown at the end of the Guided Tour. Mirrors the firmware's
- * default layout (default_layout.c) running with plausible CAN
- * driving data — the "payoff" frame that proves everything we just
- * set up actually works. No real CAN; values are advanced by a
- * local 60 ms timer that models a short acceleration loop.           */
+ * Renders the firmware's default layout via layout_manager_apply_json,
+ * then feeds synthetic signal values through signal_inject_test_value
+ * on a 60 ms timer. Because we're going through the exact widget
+ * creation path the device uses, every pixel on the canvas matches
+ * what the hardware would render given the same layout + signal data.
+ */
+
+/* Firmware glue — pulled from widgets/ and layout/. */
+extern esp_err_t layout_manager_apply_json(cJSON *root, lv_obj_t *screen);
+extern void      signal_registry_reset(void);
+extern void      signal_registry_init(void);
+extern void      signal_inject_test_value(const char *name, float v);
+extern void      widget_registry_reset(void);
+extern void      font_manager_reset_instances(void);
+extern void      font_manager_init(void);
+/* Generate the firmware's canonical default layout in memory.
+ * Returns a cJSON root the caller must cJSON_Delete. */
+extern cJSON    *dashboard_build_default_layout_root(void);
 
 static float _wave(double elapsed_ms, float baseline, float amplitude,
                    double period_ms, double phase_ms) {
@@ -887,249 +867,70 @@ static void _dash_tick(lv_timer_t *t) {
     int gear;
     _drive_state(ms, &rpm, &speed, &throttle, &gear);
 
-    /* RPM bar + big RPM label above gear */
-    if (s_dash_rpm_bar)  lv_bar_set_value(s_dash_rpm_bar,  (int)rpm, LV_ANIM_OFF);
-    if (s_dash_rpm_text) lv_label_set_text_fmt(s_dash_rpm_text, "%d", (int)rpm);
-    /* Speed */
-    if (s_dash_speed)    lv_label_set_text_fmt(s_dash_speed, "%d", (int)speed);
-    /* Gear */
-    if (s_dash_gear)     lv_label_set_text_fmt(s_dash_gear, "%d", gear < 0 ? 0 : gear);
-    /* Throttle bar */
-    if (s_dash_throttle_bar) lv_bar_set_value(s_dash_throttle_bar, (int)throttle, LV_ANIM_OFF);
-
-    /* Panels: oscillate around their baselines so the dash feels alive. */
-    for (int i = 0; i < DASH_PANEL_COUNT; i++) {
-        if (!s_dash_panel_values[i]) continue;
-        float v;
-        if (i == 2) {
-            /* THROTTLE panel mirrors the throttle bar. */
-            v = throttle;
-        } else if (i == 3) {
-            /* COOLANT slowly rises then holds around 85. */
-            v = 82.0f + (float)fmin(ms / 40000.0, 5.0);
-        } else {
-            v = _wave(ms, DASH_PANELS[i].baseline, DASH_PANELS[i].amplitude,
-                     3000.0 + i * 350.0, i * 700.0);
-        }
-        char buf[32];
-        if (DASH_PANELS[i].decimals == 0) snprintf(buf, sizeof(buf), "%d", (int)v);
-        else if (DASH_PANELS[i].decimals == 1) snprintf(buf, sizeof(buf), "%.1f", v);
-        else snprintf(buf, sizeof(buf), "%.3f", v);
-        lv_label_set_text(s_dash_panel_values[i], buf);
-    }
-
-    /* Coolant bar tracks the COOLANT panel value (range 0-120). */
-    if (s_dash_coolant_bar) {
-        float coolant = 82.0f + (float)fmin(ms / 40000.0, 5.0);
-        lv_bar_set_value(s_dash_coolant_bar, (int)coolant, LV_ANIM_OFF);
-    }
-
-    /* Blink the left indicator every ~600 ms after 6 s to look like
-     * a real driver intending a turn. */
-    if (s_dash_ind_l) {
-        bool on = ms > 6000 && ms < 10000 && ((int)(ms / 500) & 1);
-        lv_obj_set_style_bg_opa(s_dash_ind_l, on ? LV_OPA_COVER : LV_OPA_20, 0);
-    }
-}
-
-/* One small panel from default_layout.c's widget_panel mock. */
-static lv_obj_t *_make_dash_panel(lv_obj_t *parent, const dash_panel_def_t *d,
-                                  int16_t x, int16_t y) {
-    lv_obj_t *p = lv_obj_create(parent);
-    lv_obj_set_size(p, 155, 92);
-    lv_obj_align(p, LV_ALIGN_CENTER, x, y);
-    lv_obj_set_style_bg_color(p, lv_color_black(), 0);
-    lv_obj_set_style_bg_opa(p, LV_OPA_COVER, 0);
-    /* Thin border — default_layout uses the panel widget's built-in
-     * border; here a subtle dark grey reads cleanly on pure black. */
-    lv_color_t border = d->accent_rgb
-        ? lv_color_hex(d->accent_rgb)
-        : lv_color_hex(0x2a2a2a);
-    lv_obj_set_style_border_color(p, border, 0);
-    lv_obj_set_style_border_width(p, 1, 0);
-    lv_obj_set_style_radius(p, 4, 0);
-    lv_obj_set_style_pad_all(p, 6, 0);
-    lv_obj_clear_flag(p, LV_OBJ_FLAG_SCROLLABLE);
-
-    lv_obj_t *lbl = lv_label_create(p);
-    lv_label_set_text(lbl, d->label);
-    lv_obj_align(lbl, LV_ALIGN_TOP_MID, 0, 2);
-    lv_obj_set_style_text_color(lbl, lv_color_hex(0xb0b0b0), 0);
-    lv_obj_set_style_text_font(lbl, &lv_font_montserrat_12, 0);
-
-    lv_obj_t *val = lv_label_create(p);
-    lv_label_set_text(val, "--");
-    lv_obj_align(val, LV_ALIGN_CENTER, 0, 8);
-    lv_obj_set_style_text_color(val, lv_color_white(), 0);
-    lv_obj_set_style_text_font(val, &lv_font_montserrat_24, 0);
-    return val;
+    /* Feed the synthetic values through the real signal pipeline.
+     * Every widget subscribed to these signal names in the default
+     * layout's signals[] array will redraw via its normal update
+     * callback — no hand-wiring, no special-case code. */
+    signal_inject_test_value("RPM",             rpm);
+    signal_inject_test_value("VEHICLE_SPEED",   speed);
+    signal_inject_test_value("THROTTLE",        throttle);
+    signal_inject_test_value("GEAR",            (float)gear);
+    signal_inject_test_value("COOLANT_TEMP",    82.0f + (float)fmin(ms / 40000.0, 5.0));
+    signal_inject_test_value("INTAKE_AIR_TEMP", _wave(ms, 34.0f, 6.0f,  4200.0, 0));
+    signal_inject_test_value("LAMBDA",          _wave(ms,  0.92f, 0.08f, 3100.0, 800));
+    signal_inject_test_value("OIL_TEMP",        _wave(ms, 95.0f, 5.0f,  8000.0, 1500));
+    signal_inject_test_value("OIL_PRESSURE",    _wave(ms, 380.0f, 70.0f, 2400.0, 400));
+    signal_inject_test_value("MAP",             _wave(ms, 95.0f, 40.0f, 2000.0, 1100));
+    signal_inject_test_value("IGNITION",        _wave(ms, 18.0f, 6.0f,  2800.0, 2300));
+    signal_inject_test_value("FUEL_TRIM",       _wave(ms,  1.5f,  2.0f, 5500.0, 3000));
+    signal_inject_test_value("BATTERY_VOLTAGE", _wave(ms, 13.8f,  0.3f, 9000.0, 0));
+    signal_inject_test_value("FUEL_PRESSURE",   _wave(ms, 48.0f,  2.0f, 3600.0, 2000));
 }
 
 static void _show_dashboard(void) {
-    /* Take over the whole screen — no overlay card, no bezel decoration.
-     * This mirrors what the dash does on boot once first_run_done is set. */
+    /* 1) Tear down any wizard chrome so the dashboard has the whole
+     *    800 × 480 to itself — that's how the device boots once
+     *    first_run_done is set. */
+    if (s_dash_timer) { lv_timer_del(s_dash_timer); s_dash_timer = NULL; }
     _rebuild_base_overlay();
     if (s_overlay && lv_obj_is_valid(s_overlay)) lv_obj_del(s_overlay);
     s_overlay = s_card = NULL;
 
-    s_dash_screen = lv_scr_act();
-    lv_obj_clean(s_dash_screen);
+    /* 2) Fresh screen on pure black. layout_manager_apply_json creates
+     *    and parents every widget to this root. */
+    lv_obj_t *old = lv_scr_act();
+    s_dash_screen = lv_obj_create(NULL);
     lv_obj_set_style_bg_color(s_dash_screen, lv_color_black(), 0);
     lv_obj_set_style_bg_opa(s_dash_screen, LV_OPA_COVER, 0);
+    lv_obj_clear_flag(s_dash_screen, LV_OBJ_FLAG_SCROLLABLE);
 
-    /* ── RPM bar across top (matches default_layout x=0, y=-215, 800x55) */
-    s_dash_rpm_bar = lv_bar_create(s_dash_screen);
-    lv_obj_set_size(s_dash_rpm_bar, 800, 40);
-    lv_obj_align(s_dash_rpm_bar, LV_ALIGN_CENTER, 0, -215);
-    lv_bar_set_range(s_dash_rpm_bar, 0, 7000);
-    lv_bar_set_value(s_dash_rpm_bar, 0, LV_ANIM_OFF);
-    lv_obj_set_style_bg_color(s_dash_rpm_bar, lv_color_hex(0x1a1a1a), LV_PART_MAIN);
-    lv_obj_set_style_bg_color(s_dash_rpm_bar, lv_color_hex(0x4ade80), LV_PART_INDICATOR);
-    lv_obj_set_style_radius(s_dash_rpm_bar, 0, 0);
-    lv_obj_set_style_radius(s_dash_rpm_bar, 0, LV_PART_INDICATOR);
-    lv_obj_set_style_border_color(s_dash_rpm_bar, lv_color_hex(0x2a2a2a), 0);
-    lv_obj_set_style_border_width(s_dash_rpm_bar, 1, 0);
+    /* 3) Reset registries so a fresh load_layout_json isn't stacking on
+     *    top of stale widget/signal state from a previous scene. */
+    widget_registry_reset();
+    signal_registry_reset();
+    font_manager_reset_instances();
+    font_manager_init();
+    signal_registry_init();
 
-    /* Redline zone — a slim red block at the right end. Static, drawn
-     * once; the actual bar fill animates in _dash_tick. */
-    lv_obj_t *redline = lv_obj_create(s_dash_screen);
-    lv_obj_set_size(redline, 72, 40);  /* 72/800 ≈ 9 % ≈ 6500-7000 band */
-    lv_obj_align(redline, LV_ALIGN_CENTER, 364, -215);
-    lv_obj_set_style_bg_color(redline, lv_color_hex(0xef4444), 0);
-    lv_obj_set_style_bg_opa(redline, LV_OPA_30, 0);
-    lv_obj_set_style_border_width(redline, 0, 0);
-    lv_obj_set_style_radius(redline, 0, 0);
-
-    /* ── 8 warning-light circles at top (y=-148) ─────────────────────── */
-    static const int16_t WARN_X[8] = { -352, -292, -232, -172, 172, 232, 292, 352 };
-    for (int i = 0; i < 8; i++) {
-        lv_obj_t *w = lv_obj_create(s_dash_screen);
-        lv_obj_set_size(w, 20, 20);
-        lv_obj_align(w, LV_ALIGN_CENTER, WARN_X[i], -148);
-        lv_obj_set_style_radius(w, 10, 0);
-        /* Warnings 0 + 3 "active" for flavour (ABS OFF, HEAD LIGHTS). */
-        bool active = (i == 0 || i == 3);
-        lv_obj_set_style_bg_color(w, active ? lv_color_hex(0xef4444) : lv_color_hex(0x3a3a3a), 0);
-        lv_obj_set_style_bg_opa(w, LV_OPA_COVER, 0);
-        lv_obj_set_style_border_width(w, 0, 0);
+    /* 4) Build the firmware's canonical default layout in memory and
+     *    apply it via the real widget creation path. */
+    cJSON *root = dashboard_build_default_layout_root();
+    if (root) {
+        esp_err_t err = layout_manager_apply_json(root, s_dash_screen);
+        cJSON_Delete(root);
+        if (err != ESP_OK) {
+            printf("[dash] layout_manager_apply_json failed: %d\n", (int)err);
+        }
+    } else {
+        printf("[dash] dashboard_build_default_layout_root returned NULL\n");
     }
 
-    /* ── Left / right indicators (arrows around RPM number) ─────────── */
-    s_dash_ind_l = lv_label_create(s_dash_screen);
-    lv_label_set_text(s_dash_ind_l, LV_SYMBOL_LEFT);
-    lv_obj_align(s_dash_ind_l, LV_ALIGN_CENTER, -95, -133);
-    lv_obj_set_style_text_color(s_dash_ind_l, lv_color_hex(0x4ade80), 0);
-    lv_obj_set_style_text_font(s_dash_ind_l, &lv_font_montserrat_24, 0);
-    lv_obj_set_style_text_opa(s_dash_ind_l, LV_OPA_20, 0);
+    /* 5) Swap screens + cleanup. */
+    lv_scr_load(s_dash_screen);
+    if (old && lv_obj_is_valid(old)) lv_obj_del(old);
 
-    s_dash_ind_r = lv_label_create(s_dash_screen);
-    lv_label_set_text(s_dash_ind_r, LV_SYMBOL_RIGHT);
-    lv_obj_align(s_dash_ind_r, LV_ALIGN_CENTER, 95, -133);
-    lv_obj_set_style_text_color(s_dash_ind_r, lv_color_hex(0x4ade80), 0);
-    lv_obj_set_style_text_font(s_dash_ind_r, &lv_font_montserrat_24, 0);
-    lv_obj_set_style_text_opa(s_dash_ind_r, LV_OPA_20, 0);
-
-    /* ── RPM big number centre-top ──────────────────────────────────── */
-    lv_obj_t *rpm_lbl = lv_label_create(s_dash_screen);
-    lv_label_set_text(rpm_lbl, "RPM");
-    lv_obj_align(rpm_lbl, LV_ALIGN_CENTER, 0, -165);
-    lv_obj_set_style_text_color(rpm_lbl, lv_color_hex(0x888888), 0);
-    lv_obj_set_style_text_font(rpm_lbl, &lv_font_montserrat_10, 0);
-
-    s_dash_rpm_text = lv_label_create(s_dash_screen);
-    lv_label_set_text(s_dash_rpm_text, "0");
-    lv_obj_align(s_dash_rpm_text, LV_ALIGN_CENTER, 0, -133);
-    lv_obj_set_style_text_color(s_dash_rpm_text, lv_color_white(), 0);
-    lv_obj_set_style_text_font(s_dash_rpm_text, &lv_font_montserrat_24, 0);
-
-    /* ── RDM logo (placeholder text) ────────────────────────────────── */
-    lv_obj_t *logo = lv_label_create(s_dash_screen);
-    lv_label_set_text(logo, "R D M");
-    lv_obj_align(logo, LV_ALIGN_CENTER, 0, -60);
-    lv_obj_set_style_text_color(logo, lv_color_hex(0xef4444), 0);
-    lv_obj_set_style_text_font(logo, &lv_font_montserrat_22, 0);
-
-    /* ── Speed centre (the "136" in the reference) ──────────────────── */
-    s_dash_speed = lv_label_create(s_dash_screen);
-    lv_label_set_text(s_dash_speed, "0");
-    lv_obj_align(s_dash_speed, LV_ALIGN_CENTER, 0, 30);
-    lv_obj_set_style_text_color(s_dash_speed, lv_color_white(), 0);
-    lv_obj_set_style_text_font(s_dash_speed, &lv_font_montserrat_48, 0);
-
-    lv_obj_t *kph = lv_label_create(s_dash_screen);
-    lv_label_set_text(kph, "km/h");
-    lv_obj_align(kph, LV_ALIGN_CENTER, 0, 72);
-    lv_obj_set_style_text_color(kph, lv_color_hex(0x888888), 0);
-    lv_obj_set_style_text_font(kph, &lv_font_montserrat_10, 0);
-
-    /* ── 8 panels ───────────────────────────────────────────────────── */
-    for (int i = 0; i < DASH_PANEL_COUNT; i++) {
-        s_dash_panel_values[i] = _make_dash_panel(s_dash_screen, &DASH_PANELS[i],
-                                                   DASH_PANEL_POS[i].x,
-                                                   DASH_PANEL_POS[i].y);
-    }
-
-    /* ── Gear box centre-bottom (x=0, y=178, 92x92) ─────────────────── */
-    lv_obj_t *gearp = lv_obj_create(s_dash_screen);
-    lv_obj_set_size(gearp, 92, 92);
-    lv_obj_align(gearp, LV_ALIGN_CENTER, 0, 178);
-    lv_obj_set_style_bg_color(gearp, lv_color_hex(0x222222), 0);
-    lv_obj_set_style_border_color(gearp, lv_color_hex(0x3a3a3a), 0);
-    lv_obj_set_style_border_width(gearp, 1, 0);
-    lv_obj_set_style_radius(gearp, 4, 0);
-    lv_obj_set_style_pad_all(gearp, 4, 0);
-    lv_obj_clear_flag(gearp, LV_OBJ_FLAG_SCROLLABLE);
-
-    lv_obj_t *gl = lv_label_create(gearp);
-    lv_label_set_text(gl, "GEAR");
-    lv_obj_align(gl, LV_ALIGN_TOP_MID, 0, 4);
-    lv_obj_set_style_text_color(gl, lv_color_hex(0xb0b0b0), 0);
-    lv_obj_set_style_text_font(gl, &lv_font_montserrat_12, 0);
-
-    s_dash_gear = lv_label_create(gearp);
-    lv_label_set_text(s_dash_gear, "0");
-    lv_obj_align(s_dash_gear, LV_ALIGN_CENTER, 0, 10);
-    lv_obj_set_style_text_color(s_dash_gear, lv_color_white(), 0);
-    lv_obj_set_style_text_font(s_dash_gear, &lv_font_montserrat_48, 0);
-
-    /* ── Coolant + Throttle bars at y=209 ───────────────────────────── */
-    s_dash_coolant_bar = lv_bar_create(s_dash_screen);
-    lv_obj_set_size(s_dash_coolant_bar, 300, 22);
-    lv_obj_align(s_dash_coolant_bar, LV_ALIGN_CENTER, -240, 213);
-    lv_bar_set_range(s_dash_coolant_bar, 0, 120);
-    lv_bar_set_value(s_dash_coolant_bar, 60, LV_ANIM_OFF);
-    lv_obj_set_style_bg_color(s_dash_coolant_bar, lv_color_hex(0x1a1a1a), LV_PART_MAIN);
-    lv_obj_set_style_bg_color(s_dash_coolant_bar, lv_color_hex(0x2196F3), LV_PART_INDICATOR);
-    lv_obj_set_style_radius(s_dash_coolant_bar, 2, 0);
-    lv_obj_set_style_radius(s_dash_coolant_bar, 2, LV_PART_INDICATOR);
-    lv_obj_set_style_border_width(s_dash_coolant_bar, 0, 0);
-
-    lv_obj_t *cbl = lv_label_create(s_dash_screen);
-    lv_label_set_text(cbl, "COOLANT TEMP");
-    lv_obj_align(cbl, LV_ALIGN_CENTER, -240, 186);
-    lv_obj_set_style_text_color(cbl, lv_color_hex(0x888888), 0);
-    lv_obj_set_style_text_font(cbl, &lv_font_montserrat_10, 0);
-
-    s_dash_throttle_bar = lv_bar_create(s_dash_screen);
-    lv_obj_set_size(s_dash_throttle_bar, 300, 22);
-    lv_obj_align(s_dash_throttle_bar, LV_ALIGN_CENTER, 240, 213);
-    lv_bar_set_range(s_dash_throttle_bar, 0, 100);
-    lv_bar_set_value(s_dash_throttle_bar, 0, LV_ANIM_OFF);
-    lv_obj_set_style_bg_color(s_dash_throttle_bar, lv_color_hex(0x1a1a1a), LV_PART_MAIN);
-    lv_obj_set_style_bg_color(s_dash_throttle_bar, lv_color_hex(0x4ade80), LV_PART_INDICATOR);
-    lv_obj_set_style_radius(s_dash_throttle_bar, 2, 0);
-    lv_obj_set_style_radius(s_dash_throttle_bar, 2, LV_PART_INDICATOR);
-    lv_obj_set_style_border_width(s_dash_throttle_bar, 0, 0);
-
-    lv_obj_t *tbl = lv_label_create(s_dash_screen);
-    lv_label_set_text(tbl, "THROTTLE %");
-    lv_obj_align(tbl, LV_ALIGN_CENTER, 240, 186);
-    lv_obj_set_style_text_color(tbl, lv_color_hex(0x888888), 0);
-    lv_obj_set_style_text_font(tbl, &lv_font_montserrat_10, 0);
-
-    /* Start the drive animation. */
+    /* 6) Start the synthetic CAN drive cycle. */
     s_dash_started_ms = emscripten_get_now();
-    if (s_dash_timer) lv_timer_del(s_dash_timer);
     s_dash_timer = lv_timer_create(_dash_tick, 60, NULL);
 }
 
@@ -1159,11 +960,8 @@ static void _rebuild_base_overlay(void) {
     /* Tear down any lingering state first. */
     if (s_scan_timer)         { lv_timer_del(s_scan_timer);         s_scan_timer         = NULL; }
     if (s_wifi_connect_timer) { lv_timer_del(s_wifi_connect_timer); s_wifi_connect_timer = NULL; }
-    if (s_dash_timer)         { lv_timer_del(s_dash_timer);         s_dash_timer         = NULL; }
-    s_dash_screen = s_dash_rpm_bar = s_dash_rpm_text = s_dash_speed = NULL;
-    s_dash_gear = s_dash_coolant_bar = s_dash_throttle_bar = NULL;
-    s_dash_ind_l = s_dash_ind_r = NULL;
-    for (int i = 0; i < DASH_PANEL_COUNT; i++) s_dash_panel_values[i] = NULL;
+    if (s_dash_timer) { lv_timer_del(s_dash_timer); s_dash_timer = NULL; }
+    s_dash_screen = NULL;
     if (s_ecu_overlay && lv_obj_is_valid(s_ecu_overlay))   lv_obj_del(s_ecu_overlay);
     if (s_wifi_overlay && lv_obj_is_valid(s_wifi_overlay)) lv_obj_del(s_wifi_overlay);
     s_ecu_overlay = s_ecu_make_dd = s_ecu_ver_dd = s_ecu_apply = NULL;
