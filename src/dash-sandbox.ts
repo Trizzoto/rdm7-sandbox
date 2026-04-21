@@ -25,6 +25,33 @@ const DEFAULT_WASM_URL = '/rdm7-sandbox.wasm';
 const DEVICE_W = 800;
 const DEVICE_H = 480;
 
+/* Inline SVG icons — crisp at all DPRs, scale with font-size via em
+ * dims, and inherit stroke colour so themes pick them up automatically. */
+const ICON_PLAY = `
+<svg class="icon" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+  <path d="M4 3l9 5-9 5V3z" fill="currentColor"/>
+</svg>`;
+const ICON_PAUSE = `
+<svg class="icon" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+  <rect x="4" y="3" width="3" height="10" fill="currentColor"/>
+  <rect x="9" y="3" width="3" height="10" fill="currentColor"/>
+</svg>`;
+const ICON_BACK = `
+<svg class="icon" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+  <path d="M11 3L4 8l7 5V3z" fill="currentColor"/>
+  <rect x="3" y="3" width="1.5" height="10" fill="currentColor"/>
+</svg>`;
+const ICON_NEXT = `
+<svg class="icon" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+  <path d="M5 3l7 5-7 5V3z" fill="currentColor"/>
+  <rect x="11.5" y="3" width="1.5" height="10" fill="currentColor"/>
+</svg>`;
+const ICON_RESTART = `
+<svg class="icon" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M2 3v4h4"/>
+  <path d="M2 7a6 6 0 1 1 1.7 4.2"/>
+</svg>`;
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export class DashSandboxElement extends HTMLElement {
@@ -39,6 +66,8 @@ export class DashSandboxElement extends HTMLElement {
   private restartBtn!: HTMLButtonElement;
   private loadingEl!: HTMLDivElement;
   private errorEl!: HTMLDivElement;
+  private ledEl!: HTMLSpanElement;
+  private keyHandler?: (e: KeyboardEvent) => void;
 
   private overlay!: HighlightOverlay;
   private voice!: Voice;
@@ -57,6 +86,10 @@ export class DashSandboxElement extends HTMLElement {
     if (this.rafHandle) cancelAnimationFrame(this.rafHandle);
     this.runner?.pause();
     this.voice?.dispose?.();
+    if (this.keyHandler) {
+      window.removeEventListener('keydown', this.keyHandler);
+      this.keyHandler = undefined;
+    }
     // Emscripten's Modularize mode exposes _free via the Module — we
     // let the GC collect the heap buffer but we at least null our
     // strong refs so SPAs remounting this component don't pile up
@@ -121,38 +154,129 @@ export class DashSandboxElement extends HTMLElement {
           max-width: 860px; margin: 0 auto;
           color: var(--sb-text);
         }
-        /* Photoshop-style frame: tight, dark, with a faint inset
-         * highlight on the top edge and a soft drop shadow below. */
+        /* Premium device bezel.
+         *
+         * Built as three nested layers:
+         *   shell   → the physical housing (deep shadow + subtle
+         *             brushed-metal linear gradient along vertical axis)
+         *   bezel   → the black frame between housing and screen
+         *             (~14 px, with a top-edge glint + bottom rebate)
+         *   screen  → the canvas + a thin glass-reflection overlay
+         *
+         * On top of the bezel I drop a tiny status LED (red when the
+         * tour is playing, faint when paused) and a wordmark so the
+         * unit looks like a real dashboard, not a CSS tile. */
         .dsb-device-shell {
           position: relative;
-          padding: 14px;
-          background: var(--sb-frame);
-          border-radius: 8px;
+          padding: 8px 8px 8px;
+          border-radius: 14px;
+          background:
+            linear-gradient(180deg, #2e2e2e 0%, #1c1c1c 45%, #242424 55%, #131313 100%);
           box-shadow:
-            0 24px 80px rgba(0, 0, 0, 0.6),
-            0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+            0 28px 80px -10px rgba(0, 0, 0, 0.55),
+            0 2px 4px rgba(0, 0, 0, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.07),
+            inset 0 -1px 0 rgba(0, 0, 0, 0.6);
         }
+        /* Thin top-edge highlight — gives the housing a cast-aluminium
+         * look rather than flat grey plastic. */
+        .dsb-device-shell::before {
+          content: '';
+          position: absolute;
+          inset: 0 20% auto 20%;
+          height: 1px;
+          background: linear-gradient(90deg,
+            transparent, rgba(255, 255, 255, 0.15), transparent);
+          pointer-events: none;
+        }
+
+        .dsb-bezel {
+          position: relative;
+          padding: 14px 16px 18px;
+          border-radius: 10px;
+          background:
+            linear-gradient(180deg, #0a0a0a 0%, #070707 100%);
+          box-shadow:
+            inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+            inset 0 2px 6px rgba(0, 0, 0, 0.65);
+        }
+
         .dsb-device {
           position: relative;
           aspect-ratio: 800 / 480;
           background: #000;
-          border-radius: var(--sb-radius-lg);
+          border-radius: 3px;
           overflow: hidden;
           box-shadow:
-            inset 0 0 0 1px rgba(255, 255, 255, 0.03),
-            inset 0 1px 2px rgba(0, 0, 0, 0.4);
+            inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+            inset 0 1px 2px rgba(0, 0, 0, 0.5),
+            0 0 0 1px rgba(0, 0, 0, 0.7);
         }
         .dsb-device canvas {
           display: block; width: 100%; height: 100%;
           touch-action: none; outline: none;
         }
+        /* Subtle glass glint across the top-left quarter of the
+         * screen. Non-interactive, low opacity so it doesn't compete
+         * with the UI underneath. */
+        .dsb-glint {
+          position: absolute;
+          inset: 0;
+          border-radius: 3px;
+          pointer-events: none;
+          background:
+            linear-gradient(115deg,
+              rgba(255, 255, 255, 0.045) 0%,
+              rgba(255, 255, 255, 0.015) 22%,
+              transparent 45%);
+          mix-blend-mode: screen;
+        }
+
+        /* Dashboard wordmark, lower-right. Monospace tag with the
+         * dimensions etched into it — confirms the user is looking at
+         * the real 800 × 480 panel, not a resized preview. */
+        .dsb-mark {
+          position: absolute;
+          bottom: 4px; right: 16px;
+          color: #3a3a3a;
+          font-family: 'JetBrains Mono', ui-monospace, monospace;
+          font-size: 9px;
+          letter-spacing: 0.3em;
+          text-transform: uppercase;
+          user-select: none;
+          pointer-events: none;
+        }
+        /* Small LED in the lower-left of the bezel. Red-on when a
+         * tour is playing, faint red otherwise. Class toggled in the
+         * transport handler. */
+        .dsb-led {
+          position: absolute;
+          bottom: 6px; left: 18px;
+          width: 6px; height: 6px;
+          border-radius: 50%;
+          background: #4a0404;
+          box-shadow:
+            inset 0 1px 1px rgba(0, 0, 0, 0.5),
+            0 0 0 1px #000;
+          transition: background .2s, box-shadow .2s;
+        }
+        .dsb-led.live {
+          background: var(--sb-accent-hot);
+          box-shadow:
+            inset 0 1px 1px rgba(0, 0, 0, 0.3),
+            0 0 6px rgba(255, 26, 26, 0.8),
+            0 0 0 1px #000;
+        }
+        /* Loading / error overlays sit on top of the screen only,
+         * not the surrounding bezel. Inset matches .dsb-bezel padding
+         * so the bezel housing stays visible behind. */
         .dsb-loading, .dsb-error {
-          position: absolute; inset: 14px;
-          border-radius: var(--sb-radius-lg);
+          position: absolute; inset: 0;
+          border-radius: 3px;
           display: flex; align-items: center; justify-content: center;
           flex-direction: column; gap: 10px;
           color: #e8e8e8;
-          background: rgba(0, 0, 0, 0.85);
+          background: rgba(0, 0, 0, 0.88);
           text-align: center; padding: 24px;
           font-family: 'JetBrains Mono', ui-monospace, monospace;
           font-size: 12px;
@@ -271,14 +395,19 @@ export class DashSandboxElement extends HTMLElement {
 
       <div class="dsb-root">
         <div class="dsb-device-shell">
-          <div class="dsb-device">
-            <canvas id="canvas" width="${DEVICE_W}" height="${DEVICE_H}" tabindex="-1"></canvas>
+          <div class="dsb-bezel">
+            <div class="dsb-device">
+              <canvas id="canvas" width="${DEVICE_W}" height="${DEVICE_H}" tabindex="-1"></canvas>
+              <div class="dsb-glint"></div>
+              <div class="dsb-loading">
+                <div class="dsb-spinner"></div>
+                <div>LOADING SANDBOX</div>
+              </div>
+              <div class="dsb-error" style="display:none"></div>
+            </div>
+            <span class="dsb-led" aria-hidden="true"></span>
+            <span class="dsb-mark">RDM · 7 · 800 × 480</span>
           </div>
-          <div class="dsb-loading">
-            <div class="dsb-spinner"></div>
-            <div>Loading sandbox…</div>
-          </div>
-          <div class="dsb-error" style="display:none"></div>
         </div>
 
         <div class="dsb-narration">
@@ -286,23 +415,23 @@ export class DashSandboxElement extends HTMLElement {
           <div class="dsb-caption"></div>
         </div>
 
-        <div class="dsb-controls">
+        <div class="dsb-controls" role="toolbar" aria-label="Tour transport">
           <div class="dsb-ctrl-group">
-            <button class="dsb-btn" data-act="back"    title="Previous step">
-              <span class="icon">◀</span>
+            <button class="dsb-btn" data-act="back" title="Previous step (←)" aria-label="Previous step">
+              ${ICON_BACK}
             </button>
-            <button class="dsb-btn primary" data-act="play" title="Play / Pause">
-              <span class="icon">▶</span><span class="label">Play</span>
+            <button class="dsb-btn primary" data-act="play" title="Play / Pause (Space)" aria-label="Play">
+              ${ICON_PLAY}<span class="label">Play</span>
             </button>
-            <button class="dsb-btn" data-act="next"    title="Next step">
-              <span class="icon">▶</span>
+            <button class="dsb-btn" data-act="next" title="Next step (→)" aria-label="Next step">
+              ${ICON_NEXT}
             </button>
-            <button class="dsb-btn" data-act="restart" title="Restart from the beginning">
-              <span class="icon">↻</span>
+            <button class="dsb-btn" data-act="restart" title="Restart from the beginning (R)" aria-label="Restart">
+              ${ICON_RESTART}
             </button>
           </div>
-          <div class="dsb-timeline"></div>
-          <span class="dsb-step-label">—</span>
+          <div class="dsb-timeline" role="group" aria-label="Step timeline"></div>
+          <span class="dsb-step-label" aria-live="polite">—</span>
         </div>
       </div>
     `;
@@ -314,6 +443,7 @@ export class DashSandboxElement extends HTMLElement {
     this.captionEl   = this.querySelector('.dsb-caption') as HTMLDivElement;
     this.timelineEl  = this.querySelector('.dsb-timeline') as HTMLDivElement;
     this.stepLabelEl = this.querySelector('.dsb-step-label') as HTMLSpanElement;
+    this.ledEl       = this.querySelector('.dsb-led') as HTMLSpanElement;
     this.playBtn     = this.querySelector('[data-act="play"]')    as HTMLButtonElement;
     this.backBtn     = this.querySelector('[data-act="back"]')    as HTMLButtonElement;
     this.nextBtn     = this.querySelector('[data-act="next"]')    as HTMLButtonElement;
@@ -327,6 +457,25 @@ export class DashSandboxElement extends HTMLElement {
     this.backBtn.addEventListener('click',    () => this.runner?.back(this.script!));
     this.nextBtn.addEventListener('click',    () => void this.runner?.next(this.script!));
     this.restartBtn.addEventListener('click', () => void this.runner?.play(this.script!, 0));
+
+    // Keyboard shortcuts. Only active while the pointer is inside
+    // this component so the sandbox doesn't hijack the host page's
+    // global keybindings. Space / arrows / R — familiar video-player
+    // ergonomics.
+    let focused = false;
+    this.addEventListener('pointerenter', () => { focused = true; });
+    this.addEventListener('pointerleave', () => { focused = false; });
+    this.keyHandler = (e: KeyboardEvent) => {
+      if (!focused || !this.runner || !this.script) return;
+      if (e.target instanceof HTMLElement && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+      switch (e.key) {
+        case ' ':        e.preventDefault(); this.togglePlay(); break;
+        case 'ArrowLeft':  e.preventDefault(); this.runner.back(this.script); break;
+        case 'ArrowRight': e.preventDefault(); void this.runner.next(this.script); break;
+        case 'r': case 'R': e.preventDefault(); void this.runner.play(this.script, 0); break;
+      }
+    };
+    window.addEventListener('keydown', this.keyHandler);
 
     this.setTransportEnabled(false);
   }
@@ -449,9 +598,15 @@ export class DashSandboxElement extends HTMLElement {
   private setPlayLabel(playing: boolean) {
     this.isPlaying = playing;
     const label = this.playBtn.querySelector('.label')!;
-    const icon  = this.playBtn.querySelector('.icon')!;
+    const oldIcon = this.playBtn.querySelector('svg.icon');
     label.textContent = playing ? 'Pause' : 'Play';
-    icon.textContent  = playing ? '❚❚'   : '▶';
+    this.playBtn.setAttribute('aria-label', playing ? 'Pause' : 'Play');
+    if (oldIcon) {
+      // Replace the first svg in place; keep the <span class="label">
+      // as-is so layout doesn't jump.
+      oldIcon.outerHTML = playing ? ICON_PAUSE : ICON_PLAY;
+    }
+    this.ledEl?.classList.toggle('live', playing);
   }
 
   private setCaption(text: string) {
@@ -466,10 +621,16 @@ export class DashSandboxElement extends HTMLElement {
 
   private buildTimeline(script: TourScript) {
     this.timelineEl.innerHTML = '';
-    script.steps.forEach((_s, i) => {
+    script.steps.forEach((step, i) => {
       const dot = document.createElement('div');
       dot.className = 'dsb-dot';
-      dot.title = `Step ${i + 1}${_s.voice ? ' — ' + _s.voice : ''}`;
+      dot.setAttribute('role', 'button');
+      dot.setAttribute('aria-label',
+        `Step ${i + 1} of ${script.steps.length}${step.voice ? ': ' + step.voice.slice(0, 60) : ''}`);
+      // Tooltip: step number + voice preview. Browser renders its
+      // native title — low-effort, keyboard-reachable via focus.
+      const preview = step.voice ? `\n${step.voice}` : '';
+      dot.title = `Step ${i + 1} of ${script.steps.length}${preview}`;
       dot.addEventListener('click', () => {
         if (!this.runner || !this.script) return;
         // Jump semantics: ensure scene matches target by triggering
