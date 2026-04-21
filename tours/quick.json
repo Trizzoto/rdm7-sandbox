@@ -1,0 +1,38 @@
+{
+  "id": "quick",
+  "title": "60-Second Quick Walkthrough",
+  "steps": [
+    {
+      "scene": "step1_done",
+      "voice": "Here's the fast tour. On first boot, RDM7 scans your CAN bus at four common bitrates and auto-picks the one your ECU is using. In this demo it found 500 kilobits.",
+      "highlight": { "x": 120, "y": 180, "w": 560, "h": 160 },
+      "wait": 7500
+    },
+    {
+      "voice": "Tap Apply to lock in the detected bitrate.",
+      "click": [400, 313],
+      "delay": 1200
+    },
+    {
+      "scene": "step2",
+      "voice": "Next, pick your ECU. The dash ships with presets for Haltech, Link, MoTeC, MaxxECU, MS3-Pro, and Ford Falcon. Haltech Elite is selected here.",
+      "highlight": { "x": 100, "y": 140, "w": 600, "h": 80 },
+      "wait": 6500
+    },
+    {
+      "voice": "Apply.",
+      "click": [400, 320],
+      "delay": 1000
+    },
+    {
+      "scene": "step3",
+      "voice": "Finally, connect. Join WiFi for the web editor, plug into USB for the desktop app, or use the built-in hotspot as a fallback.",
+      "wait": 5500
+    },
+    {
+      "scene": "wifi_connected",
+      "voice": "And that's it. Dashboard is ready — under a minute from power-on.",
+      "wait": 3500
+    }
+  ]
+}

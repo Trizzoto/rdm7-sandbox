@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RDM-7 Sandbox — Dev</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      min-height: 100vh;
+      font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(1200px 700px at 10% -10%, rgba(33,150,243,0.12), transparent 60%),
+        radial-gradient(900px 600px at 90% 110%, rgba(61,216,255,0.10), transparent 60%),
+        linear-gradient(180deg, #070b14 0%, #0c1121 100%);
+      color: #e8edf7;
+      padding: 40px 20px 80px;
+    }
+    header {
+      max-width: 900px; margin: 0 auto 28px;
+      display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+      flex-wrap: wrap;
+    }
+    .brand {
+      display: flex; align-items: baseline; gap: 12px;
+    }
+    .brand-mark {
+      letter-spacing: 0.3em;
+      color: #3dd8ff;
+      font-weight: 700;
+      font-size: 12px;
+    }
+    h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: 0.3px; }
+    .tag {
+      font-size: 12px; color: #9aa7c2;
+      padding: 4px 10px;
+      background: rgba(61, 216, 255, 0.10);
+      border: 1px solid rgba(61, 216, 255, 0.25);
+      border-radius: 999px;
+    }
+    .tour-picker {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 12px; color: #9aa7c2;
+      letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .tour-picker select {
+      background: rgba(61, 216, 255, 0.05);
+      border: 1px solid rgba(61, 216, 255, 0.25);
+      color: #e8edf7;
+      border-radius: 999px;
+      padding: 6px 28px 6px 12px;
+      font: inherit; font-size: 13px;
+      letter-spacing: 0; text-transform: none;
+      cursor: pointer;
+      appearance: none;
+      background-image: linear-gradient(45deg, transparent 50%, #9aa7c2 50%),
+                        linear-gradient(135deg, #9aa7c2 50%, transparent 50%);
+      background-position: calc(100% - 14px) 50%, calc(100% - 9px) 50%;
+      background-size: 5px 5px;
+      background-repeat: no-repeat;
+    }
+    .tour-picker select:hover { border-color: rgba(61, 216, 255, 0.5); }
+    .intro {
+      max-width: 900px; margin: 0 auto 28px;
+      color: #9aa7c2;
+    }
+    .intro code {
+      background: rgba(255,255,255,0.06);
+      padding: 2px 6px; border-radius: 4px;
+      font-size: 13px;
+    }
+    footer {
+      max-width: 900px; margin: 28px auto 0;
+      color: #5c6578; font-size: 12px;
+      display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    }
+    footer a { color: #9aa7c2; text-decoration: none; }
+    footer a:hover { color: #e8edf7; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span class="brand-mark">R D M  ·  7</span>
+      <h1>Sandbox — Guided Tour Dev</h1>
+    </div>
+    <label class="tour-picker">
+      <span>Tour</span>
+      <select id="tour-select"></select>
+    </label>
+  </header>
+
+  <p class="intro">
+    The dash firmware compiled to WebAssembly, running the first-run wizard in
+    your browser with AI voiceover and a scripted pointer injector. Hit
+    <code>▶ Play</code> to start; use the step dots to jump around.
+  </p>
+
+  <dash-sandbox
+    id="sb"
+    script="/tours/first-boot.json"
+    wasm="/rdm7-sandbox.wasm"
+  ></dash-sandbox>
+
+  <footer>
+    <span>Replaces recorded user-guide videos for RDM Web Studio.</span>
+    <span>
+      <a href="https://github.com/Trizzoto/rdm7-sandbox">GitHub</a>
+      &nbsp;·&nbsp;
+      <a href="https://studio.realtimedatamonitoring.com.au/">Studio</a>
+    </span>
+  </footer>
+
+  <script type="module">
+    import '/src/sandbox.ts';
+
+    (async () => {
+      const manifest = await fetch('/tours/manifest.json').then(r => r.json());
+      const select = document.getElementById('tour-select');
+      const sb = document.getElementById('sb');
+
+      for (const t of manifest.tours) {
+        const o = document.createElement('option');
+        o.value = `/tours/${t.file}`;
+        o.textContent = `${t.title} — ${t.durationSec}s`;
+        select.appendChild(o);
+      }
+
+      select.addEventListener('change', async () => {
+        // Wait for boot if the user opens the select before WASM is ready.
+        const waitForReady = () => new Promise(r => {
+          const check = () => (sb.runner ? r() : setTimeout(check, 50));
+          check();
+        });
+        await waitForReady();
+        await sb.setScript(select.value);
+      });
+    })();
+  </script>
+</body>
+</html>

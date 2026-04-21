@@ -1,0 +1,67 @@
+{
+  "id": "first-boot",
+  "title": "First-boot walkthrough",
+  "steps": [
+    {
+      "scene": "step1",
+      "voice": "Welcome to RDM7. Let's walk through the first-time setup together.",
+      "wait": 2500
+    },
+    {
+      "voice": "First, the dash auto-scans your CAN bus at four bitrates to find where your ECU is talking.",
+      "highlight": { "x": 120, "y": 110, "w": 560, "h": 20 },
+      "wait": 4500
+    },
+    {
+      "scene": "step1_done",
+      "voice": "Scan complete. It detected CAN at 500 kilobits, matching the recommended slot.",
+      "highlight": { "x": 120, "y": 180, "w": 560, "h": 90 },
+      "wait": 3500
+    },
+    {
+      "voice": "Let's apply it. Tapping Apply and Continue.",
+      "highlight": { "x": 120, "y": 290, "w": 560, "h": 50 },
+      "click": [400, 313],
+      "delay": 1500
+    },
+    {
+      "scene": "step2",
+      "voice": "Step 2. The ECU picker. Make sets the manufacturer, version sets the specific model and calibration.",
+      "highlight": { "x": 100, "y": 140, "w": 600, "h": 80 },
+      "wait": 4000
+    },
+    {
+      "voice": "Haltech Elite is pre-selected. Tap Apply to load its signal bindings into the default layout.",
+      "highlight": { "x": 150, "y": 290, "w": 500, "h": 50 },
+      "click": [400, 320],
+      "delay": 1500
+    },
+    {
+      "scene": "step3",
+      "voice": "Step 3. Three ways to connect to the web editor. WiFi is recommended, USB works out-of-the-box, and the built-in hotspot is a fallback if neither works.",
+      "wait": 6500
+    },
+    {
+      "voice": "Tap Join a WiFi Network to open the scan.",
+      "highlight": { "x": 120, "y": 155, "w": 560, "h": 40 },
+      "click": [400, 173],
+      "delay": 1500
+    },
+    {
+      "scene": "wifi_picker",
+      "voice": "These are nearby networks. Select yours and enter the password when prompted. For the demo, I'll pick Home 2.4.",
+      "highlight": { "x": 50, "y": 130, "w": 700, "h": 60 },
+      "click": [400, 150],
+      "delay": 2200
+    },
+    {
+      "scene": "wifi_connected",
+      "voice": "Connected. The dash now shows its IP address in Device Settings so you can browse to the web editor.",
+      "wait": 3500
+    },
+    {
+      "voice": "That's the full first-boot flow. From here you're ready to open the web editor and customise your layout.",
+      "wait": 4000
+    }
+  ]
+}

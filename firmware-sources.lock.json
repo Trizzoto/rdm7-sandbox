@@ -1,0 +1,24 @@
+﻿{
+    "branch":  "feature/widget-sys",
+    "syncedAt":  "2026-04-21T12:46:17.3324872Z",
+    "commit":  "894b3270f574336ad65ab486483b740563f20476",
+    "source":  "local:C:\\Users\\ruuva\\workspace\\RDM-7_Dash",
+    "files":  {
+                  "main/can/can_manager.h":  "cd5ffee5e547aaab4929da7962162b7095ff00c6",
+                  "main/layout/ecu_presets.h":  "e9e77db6ddea38c6723db1ecb871deed062b62eb",
+                  "main/ui/screens/ui_Screen3.h":  "1710c78cf7a72a1bc818c957af2afdbdec31b8c6",
+                  "main/storage/config_store.h":  "78a919d0b8484c9c39f3be05aaa6b2895b66f850",
+                  "main/ui/ui_helpers.h":  "c639389ab46f4793d79e7cfd6eaca3d0f5497345",
+                  "main/ui/theme.h":  "1a854015aad7fceb3127b01e93576350435d1615",
+                  "main/ui/screens/ui_wifi.c":  "8dc9e5a6886b6b8d80a59023b27a8c1c86b868fb",
+                  "main/ui/screens/first_run_wizard.c":  "e70cdefb2643779fcc5dfb118d6454630bdaf870",
+                  "main/can/can_bus_test.h":  "856a0c9233ab54c9dcd9588437a08b71494992e7",
+                  "main/ui/screens/ui_wifi.h":  "7e35f722bd67b7d68bb28792e4f2bd0ff73bc118",
+                  "main/ui/screens/ui_ecu_picker.c":  "58f207c1fdf3d0350f75a46e931978bf6fc35295",
+                  "main/ui/screens/first_run_wizard.h":  "d9a1fcb0442b05b3b52633c29584ff5882f32f68",
+                  "main/net/wifi_manager.h":  "7634588b7b48072da31d8d7bcd44b38b828543b8",
+                  "main/layout/layout_manager.h":  "52fe2eb85a9a1cbf8c400087cc8e4905b5a9f7cc",
+                  "main/ui/ui.h":  "f66d6e1e44c0e911d6fb07aad0e2fa3249c82308",
+                  "main/ui/screens/ui_ecu_picker.h":  "39e97b6ddee078c67fffd21b44d8279ad63be297"
+              }
+}

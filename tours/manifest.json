@@ -1,0 +1,20 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Trizzoto/rdm7-sandbox/main/tours/manifest.schema.json",
+  "version": 1,
+  "tours": [
+    {
+      "id": "first-boot",
+      "title": "First-Boot Walkthrough",
+      "file": "first-boot.json",
+      "description": "Full narrated walkthrough of the first-run wizard: CAN bus scan, ECU picker, and WiFi setup.",
+      "durationSec": 45
+    },
+    {
+      "id": "quick",
+      "title": "60-Second Quick Walkthrough",
+      "file": "quick.json",
+      "description": "Condensed tour hitting all three wizard steps in under a minute. Ideal for marketing / landing pages.",
+      "durationSec": 30
+    }
+  ]
+}

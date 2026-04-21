@@ -1,0 +1,78 @@
+{
+  "name": "@rdm7/sandbox",
+  "version": "0.1.0",
+  "description": "In-browser RDM-7 Dash firmware emulator for Guided Tours in RDM Web Studio — pixel-matched wizard + AI voiceover + scripted pointer injection.",
+  "type": "module",
+  "main": "./dist/sandbox.js",
+  "module": "./dist/sandbox.js",
+  "types": "./dist/sandbox.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/sandbox.d.ts",
+      "import": "./dist/sandbox.js"
+    },
+    "./tours/*": "./tours/*",
+    "./wasm": {
+      "import": "./public/rdm7-sandbox.js"
+    },
+    "./wasm-binary": "./public/rdm7-sandbox.wasm"
+  },
+  "sideEffects": [
+    "./dist/sandbox.js"
+  ],
+  "files": [
+    "dist",
+    "public/rdm7-sandbox.wasm",
+    "public/rdm7-sandbox.js",
+    "tours",
+    "docs/TOUR_FORMAT.md",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && npm run build:types",
+    "build:types": "tsc --emitDeclarationOnly --outDir dist",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "sync-firmware": "powershell -ExecutionPolicy Bypass -File scripts/sync-firmware.ps1",
+    "build-wasm": "powershell -ExecutionPolicy Bypass -File scripts/build.ps1",
+    "prepublishOnly": "npm run typecheck && npm run build"
+  },
+  "keywords": [
+    "rdm7",
+    "esp32",
+    "esp32-s3",
+    "lvgl",
+    "wasm",
+    "webassembly",
+    "emulator",
+    "tutorial",
+    "guided-tour",
+    "onboarding",
+    "web-component",
+    "dashboard",
+    "automotive",
+    "can-bus"
+  ],
+  "author": "Tommy Rosato <tommyrosato@gmail.com>",
+  "homepage": "https://github.com/Trizzoto/rdm7-sandbox#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Trizzoto/rdm7-sandbox.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Trizzoto/rdm7-sandbox/issues"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vite": "^5.2.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

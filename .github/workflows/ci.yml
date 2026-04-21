@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  # ── TypeScript / Vite side ─────────────────────────────────────────
+  # Always runs: fast, no emscripten required. Catches regressions in
+  # the web-component, tutorial-runner, and tour-JSON validation.
+  ts:
+    name: TypeScript + bundle
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+      - run: npm run typecheck
+
+      # The lib build requires public/rdm7-sandbox.wasm to exist because
+      # vite.config.ts copies publicDir into dist. On PRs where we don't
+      # rebuild the WASM, substitute a stub so rollup has something to
+      # copy. The real artifact is rebuilt in the `wasm` job below and
+      # attached to releases.
+      - name: Stub WASM artifact for TS build
+        run: |
+          mkdir -p public
+          touch public/rdm7-sandbox.wasm
+          touch public/rdm7-sandbox.js
+
+      - run: npm run build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
+
+  # ── C / WASM side ──────────────────────────────────────────────────
+  # Runs only on main + release tags (it's slow — emsdk install +
+  # first-time LVGL compile takes several minutes). PRs skip it by
+  # default; add label `build-wasm` to opt in.
+  wasm:
+    name: Emscripten WASM build
+    if: >
+      github.event_name == 'push' ||
+      contains(github.event.pull_request.labels.*.name, 'build-wasm')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 'latest'
+          actions-cache-folder: 'emsdk-cache'
+
+      - name: Validate emcc
+        run: emcc -v
+
+      - name: Sync firmware sources from adjacent RDM-7_Dash checkout
+        run: |
+          # In CI we don't have a RDM-7_Dash checkout — skip the sync
+          # step. Add a checkout of that repo if / when needed.
+          echo "Skipping firmware sync in CI (sandbox uses hand-rolled wizard)"
+
+      - name: Configure + build
+        run: |
+          mkdir -p build
+          cd build
+          emcmake cmake .. -G "Unix Makefiles"
+          emmake make rdm7-sandbox -j$(nproc)
+
+      - name: Stage artifacts
+        run: |
+          mkdir -p public
+          cp build/rdm7-sandbox.js   public/
+          cp build/rdm7-sandbox.wasm public/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wasm
+          path: |
+            public/rdm7-sandbox.js
+            public/rdm7-sandbox.wasm
+          retention-days: 30
