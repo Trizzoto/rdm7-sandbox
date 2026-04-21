@@ -70,25 +70,38 @@ export class DashSandboxElement extends HTMLElement {
   /* ── DOM + styles (inlined so the component drops into any host page) ── */
 
   private buildDom() {
-    const theme = this.getAttribute('theme') === 'light' ? 'light' : 'dark';
+    // Default to light to match studio.realtimedatamonitoring.com.au.
+    // Host pages can force the editor-dark aesthetic with theme="dark".
+    const theme = this.getAttribute('theme') === 'dark' ? 'dark' : 'light';
 
     this.style.display = 'block';
     this.innerHTML = `
       <style>
-        /* Studio design tokens — sourced from rdm7-studio-web/public/
-         * index.html + hero-prototype. Keep palette + type in lockstep
-         * with Studio so embeds feel native. */
+        /* Light-mode palette per the current brief: light-grey page
+         * surfaces, dark-grey button bodies, red CTA accent. Fonts
+         * (Sora + JetBrains Mono) carry over from the Studio editor
+         * so typography feels continuous when this component embeds
+         * inside studio.realtimedatamonitoring.com.au.
+         *
+         * Dark mode retained behind the theme="dark" attribute for
+         * host pages that want the original editor-feel (Studio is
+         * still dark in its own canvas workspace). */
         :host, dash-sandbox {
-          --sb-bg:         ${theme === 'light' ? '#f4f4f4' : '#060606'};
+          --sb-bg:         ${theme === 'light' ? '#e8e8e8' : '#060606'};
           --sb-surface:    ${theme === 'light' ? '#ffffff' : '#111111'};
-          --sb-surface-2:  ${theme === 'light' ? '#f7f7f7' : '#1a1a1a'};
+          --sb-surface-2:  ${theme === 'light' ? '#f5f5f5' : '#1a1a1a'};
           --sb-panel:      ${theme === 'light' ? '#f0f0f0' : '#303030'};
-          --sb-panel-2:    ${theme === 'light' ? '#e6e6e6' : '#393939'};
-          --sb-border:     ${theme === 'light' ? '#d8d8d8' : '#1e1e1e'};
-          --sb-border-2:   ${theme === 'light' ? '#b8b8b8' : '#555555'};
-          --sb-text:       ${theme === 'light' ? '#121212' : '#e8e8e8'};
+          --sb-panel-2:    ${theme === 'light' ? '#e2e2e2' : '#393939'};
+          --sb-border:     ${theme === 'light' ? '#d0d0d0' : '#1e1e1e'};
+          --sb-border-2:   ${theme === 'light' ? '#b0b0b0' : '#555555'};
+          --sb-text:       ${theme === 'light' ? '#1a1a1a' : '#e8e8e8'};
           --sb-muted:      ${theme === 'light' ? '#666666' : '#777777'};
-          --sb-faint:      ${theme === 'light' ? '#999999' : '#444444'};
+          --sb-faint:      ${theme === 'light' ? '#9a9a9a' : '#444444'};
+          /* Dark-grey button surfaces — Studio-editor panel tone
+           * inverted onto a light page. Text on them is off-white. */
+          --sb-btn-bg:     ${theme === 'light' ? '#393939' : '#1a1a1a'};
+          --sb-btn-bg-2:   ${theme === 'light' ? '#4a4a4a' : '#303030'};
+          --sb-btn-text:   ${theme === 'light' ? '#f5f5f5' : '#e8e8e8'};
           --sb-accent:     #cc0000;
           --sb-accent-hot: #ff1a1a;
           --sb-accent-2:   #2d8ceb;
@@ -138,10 +151,8 @@ export class DashSandboxElement extends HTMLElement {
           border-radius: var(--sb-radius-lg);
           display: flex; align-items: center; justify-content: center;
           flex-direction: column; gap: 10px;
-          color: var(--sb-muted);
-          background: rgba(6, 6, 6, 0.85);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
+          color: #e8e8e8;
+          background: rgba(0, 0, 0, 0.85);
           text-align: center; padding: 24px;
           font-family: 'JetBrains Mono', ui-monospace, monospace;
           font-size: 12px;
@@ -160,7 +171,7 @@ export class DashSandboxElement extends HTMLElement {
         /* Narration card: Studio sidebar panel aesthetic — a flat
          * surface with a slim bottom border accent when active. */
         .dsb-narration {
-          background: var(--sb-surface);
+          background: var(--sb-panel);
           border: 1px solid var(--sb-border);
           border-radius: var(--sb-radius);
           padding: 14px 18px;
@@ -190,28 +201,25 @@ export class DashSandboxElement extends HTMLElement {
           display: grid;
           grid-template-columns: auto 1fr auto;
           gap: 14px; align-items: center;
-          background: var(--sb-surface);
+          background: var(--sb-panel);
           border: 1px solid var(--sb-border);
           border-radius: var(--sb-radius);
           padding: 8px 12px;
         }
         .dsb-ctrl-group { display: flex; gap: 4px; }
         .dsb-btn {
-          background: var(--sb-surface-2);
-          border: 1px solid var(--sb-border);
-          color: var(--sb-text);
+          background: var(--sb-btn-bg);
+          border: 1px solid transparent;
+          color: var(--sb-btn-text);
           border-radius: var(--sb-radius-sm);
           padding: 7px 12px;
           font: inherit;
           font-size: 13px;
           cursor: pointer;
           display: inline-flex; align-items: center; gap: 6px;
-          transition: background .15s, border-color .15s, box-shadow .15s, transform .1s;
+          transition: background .15s, box-shadow .15s, transform .1s;
         }
-        .dsb-btn:hover  {
-          background: var(--sb-panel);
-          border-color: var(--sb-border-2);
-        }
+        .dsb-btn:hover  { background: var(--sb-btn-bg-2); }
         .dsb-btn:active { transform: translateY(1px); }
         .dsb-btn.primary {
           background: var(--sb-accent);
@@ -222,7 +230,7 @@ export class DashSandboxElement extends HTMLElement {
         .dsb-btn.primary:hover {
           background: var(--sb-accent-hot);
           border-color: var(--sb-accent-hot);
-          box-shadow: 0 0 20px rgba(255, 26, 26, 0.3);
+          box-shadow: 0 0 20px rgba(255, 26, 26, 0.28);
         }
         .dsb-btn:disabled { opacity: 0.35; cursor: default; }
         .dsb-btn .icon { font-size: 15px; line-height: 1; }

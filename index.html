@@ -13,24 +13,31 @@
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
 
   <style>
+    /* Light-mode page palette: light-grey surfaces, dark-grey
+     * interactive elements, Studio brand red for accents. Flat
+     * header — no backdrop blur, just a solid bar with a border.
+     * Typography inherited from Studio (Sora + JetBrains Mono). */
     :root {
-      color-scheme: dark;
-      --black:     #060606;
-      --surface:   #111111;
-      --surface-2: #1a1a1a;
-      --surface-3: #222222;
-      --border:    #1e1e1e;
-      --text:      #e8e8e8;
-      --text-dim:  #777777;
-      --text-faint:#444444;
-      --accent:    #cc0000;
-      --accent-hot:#ff1a1a;
+      color-scheme: light;
+      --bg:         #e8e8e8;
+      --surface:    #f5f5f5;
+      --panel:      #f0f0f0;
+      --border:     #d0d0d0;
+      --border-2:   #b8b8b8;
+      --text:       #1a1a1a;
+      --text-dim:   #595959;
+      --text-faint: #8a8a8a;
+      --btn-bg:     #393939;
+      --btn-bg-2:   #4a4a4a;
+      --btn-text:   #f5f5f5;
+      --accent:     #cc0000;
+      --accent-hot: #ff1a1a;
     }
     * { box-sizing: border-box; }
     html, body { height: 100%; margin: 0; }
     body {
       min-height: 100vh;
-      background: var(--black);
+      background: var(--bg);
       color: var(--text);
       font-family: 'Sora', ui-sans-serif, system-ui, -apple-system, sans-serif;
       font-weight: 400;
@@ -40,27 +47,10 @@
       overflow-x: hidden;
     }
 
-    /* Studio's signature ambient red glow, bottom-right corner. */
-    body::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      background:
-        radial-gradient(900px 600px at 110% 110%, rgba(204, 0, 0, 0.07), transparent 60%),
-        radial-gradient(600px 400px at -10% -10%, rgba(204, 0, 0, 0.03), transparent 60%);
-    }
-
-    /* Glass top bar, matches the Studio header treatment. Grid with
-     * brand anchored left, picker + links anchored right; on narrow
-     * viewports (< 720px) the auxiliary links collapse so the picker
-     * keeps its room. */
+    /* Flat header — solid surface, thin divider, no blur. */
     .nav {
       position: sticky; top: 0; z-index: 50;
-      background: rgba(6, 6, 6, 0.85);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      background: var(--surface);
       border-bottom: 1px solid var(--border);
       min-height: 60px;
       display: flex; align-items: center;
@@ -116,8 +106,8 @@
       .nav-brand .mark { letter-spacing: 0.2em; font-size: 12px; }
     }
 
-    /* Tour picker styled as a monospace control — feels like a Studio
-     * toolbar cell. Sharp corners, low contrast, red focus ring. */
+    /* Tour picker = dark-grey pill on the light bar, matches the
+     * Studio's own toolbar cells. */
     .tour-picker {
       display: inline-flex; align-items: center; gap: 10px;
     }
@@ -128,9 +118,9 @@
       color: var(--text-dim);
     }
     .tour-picker select {
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      color: var(--text);
+      background: var(--btn-bg);
+      border: 1px solid var(--btn-bg);
+      color: var(--btn-text);
       border-radius: 2px;
       padding: 6px 28px 6px 10px;
       font-family: inherit;
@@ -138,25 +128,21 @@
       cursor: pointer;
       appearance: none;
       background-image:
-        linear-gradient(45deg, transparent 50%, #777 50%),
-        linear-gradient(135deg, #777 50%, transparent 50%);
+        linear-gradient(45deg, transparent 50%, var(--btn-text) 50%),
+        linear-gradient(135deg, var(--btn-text) 50%, transparent 50%);
       background-position: calc(100% - 14px) 50%, calc(100% - 9px) 50%;
       background-size: 5px 5px;
       background-repeat: no-repeat;
-      transition: border-color .15s;
+      transition: background-color .15s;
     }
-    .tour-picker select:hover  { border-color: var(--text-faint); }
-    .tour-picker select:focus  { outline: none; border-color: var(--accent); }
+    .tour-picker select:hover  { background-color: var(--btn-bg-2); }
+    .tour-picker select:focus  { outline: none; box-shadow: 0 0 0 2px rgba(204, 0, 0, 0.35); }
 
-    /* Content area */
     main {
-      position: relative; z-index: 1;
       padding: 56px 28px 96px;
       max-width: 900px; margin: 0 auto;
     }
-    .hero {
-      margin-bottom: 44px;
-    }
+    .hero { margin-bottom: 44px; }
     .hero-eyebrow {
       font-family: 'JetBrains Mono', ui-monospace, monospace;
       font-size: 10px;
@@ -176,23 +162,21 @@
     .hero-body {
       max-width: 640px;
       color: var(--text-dim);
-      font-weight: 300;
+      font-weight: 400;
       font-size: 16px;
       line-height: 1.7;
     }
     .hero-body code {
-      background: var(--surface-2);
-      border: 1px solid var(--border);
+      background: var(--btn-bg);
+      color: var(--btn-text);
       padding: 2px 8px;
       border-radius: 2px;
       font-family: 'JetBrains Mono', ui-monospace, monospace;
       font-size: 13px;
-      color: var(--text);
     }
-    .hero-body strong { color: var(--text); font-weight: 500; }
+    .hero-body strong { color: var(--text); font-weight: 600; }
 
     footer {
-      position: relative; z-index: 1;
       margin-top: 56px;
       padding: 24px 28px 40px;
       max-width: 900px; margin-left: auto; margin-right: auto;
