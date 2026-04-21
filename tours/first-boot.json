@@ -1,76 +1,105 @@
 {
   "id": "first-boot",
-  "title": "First-boot walkthrough",
+  "title": "First-Boot Walkthrough",
   "steps": [
     {
       "scene": "step1",
-      "voice": "Welcome to RDM7. Let's walk through the first-time setup together.",
-      "wait": 2500
+      "voice": "Welcome to RDM7. Let's walk through the first-time setup.",
+      "wait": 1800
     },
     {
-      "voice": "First, the dash auto-scans your CAN bus at four bitrates to find where your ECU is talking.",
-      "highlight": { "x": 120, "y": 110, "w": 560, "h": 20 },
+      "voice": "On first boot, the dash automatically scans your CAN bus at four common bitrates to find where your ECU is broadcasting.",
+      "highlight": { "x": 120, "y": 175, "w": 560, "h": 95 },
       "wait": 4500
     },
     {
       "scene": "step1_done",
-      "voice": "Scan complete. It detected CAN at 500 kilobits, matching the recommended slot.",
-      "highlight": { "x": 120, "y": 180, "w": 560, "h": 90 },
+      "voice": "Scan complete. It found CAN traffic at 500 kilobits \u2014 the most common automotive rate.",
+      "highlight": { "x": 120, "y": 130, "w": 560, "h": 30 },
       "wait": 3500
     },
     {
-      "voice": "Let's apply it. Tapping Apply and Continue.",
-      "highlight": { "x": 120, "y": 290, "w": 560, "h": 50 },
+      "voice": "Tap Apply and Continue to lock that bitrate in.",
+      "highlight": { "x": 150, "y": 292, "w": 500, "h": 44 },
       "click": [400, 313],
-      "delay": 1500
+      "delay": 1400
     },
     {
       "scene": "step2",
-      "voice": "Step 2. The ECU picker. Make sets the manufacturer, version sets the specific model and calibration.",
-      "highlight": { "x": 100, "y": 140, "w": 600, "h": 80 },
-      "wait": 4000
+      "voice": "Step two: pick your ECU. Pre-loaded presets cover Haltech, Link, MoTeC, MaxxECU, MS3-Pro, and Ford Falcon.",
+      "highlight": { "x": 120, "y": 155, "w": 280, "h": 90 },
+      "wait": 4500
     },
     {
-      "voice": "Haltech Elite is pre-selected. Tap Apply to load its signal bindings into the default layout.",
+      "voice": "Each preset carries its own CAN signal map, so the default layout's panels bind to the right signals automatically.",
+      "highlight": { "x": 400, "y": 155, "w": 280, "h": 90 },
+      "wait": 4500
+    },
+    {
+      "voice": "Haltech Elite is pre-selected here. Tap Apply.",
       "highlight": { "x": 150, "y": 290, "w": 500, "h": 50 },
       "click": [400, 320],
-      "delay": 1500
+      "delay": 1400
     },
     {
       "scene": "step3",
-      "voice": "Step 3. Three ways to connect to the web editor. WiFi is recommended, USB works out-of-the-box, and the built-in hotspot is a fallback if neither works.",
-      "wait": 6500
+      "voice": "Step three: how to connect to the web editor.",
+      "wait": 2200
     },
     {
-      "voice": "Tap Join a WiFi Network to open the scan.",
-      "highlight": { "x": 120, "y": 155, "w": 560, "h": 40 },
-      "click": [400, 173],
-      "delay": 1500
-    },
-    {
-      "scene": "wifi_picker",
-      "voice": "These are nearby networks. Select yours and enter the password when prompted. For the demo, I'll pick Home 2.4.",
-      "highlight": { "x": 50, "y": 130, "w": 700, "h": 60 },
-      "click": [400, 150],
-      "delay": 2200
-    },
-    {
-      "scene": "wifi_connected",
-      "voice": "Connected. The dash now shows its IP address in Device Settings so you can browse to the web editor.",
-      "wait": 3500
-    },
-    {
-      "scene": "dashboard",
-      "voice": "And here it is — your ECU's data, live. This is the default layout with the signals we just bound: RPM, speed, gear, throttle, coolant, and the rest. Starting the engine lights this up just like this.",
-      "wait": 9500
-    },
-    {
-      "voice": "Watch the throttle blip and the RPM climb through the gears. Every panel here is a widget you can reposition or rebind in the web editor.",
+      "voice": "Option one, recommended: join your shop or home WiFi. Once connected, the dash shows its IP address in Device Settings and you browse to the editor from any laptop or phone on that network.",
+      "highlight": { "x": 110, "y": 105, "w": 580, "h": 90 },
       "wait": 7500
     },
     {
-      "voice": "That's the full first-boot flow. You're ready to start customising.",
-      "wait": 3500
+      "voice": "Option two: plug a USB cable into your laptop and the RDM Desktop Studio picks it up automatically \u2014 no WiFi needed.",
+      "highlight": { "x": 110, "y": 200, "w": 580, "h": 65 },
+      "wait": 5500
+    },
+    {
+      "voice": "Option three is a fallback: the dash hosts its own hotspot. Join that directly from your phone when nothing else is available.",
+      "highlight": { "x": 110, "y": 265, "w": 580, "h": 75 },
+      "wait": 5500
+    },
+    {
+      "voice": "Let's set up WiFi now. Tap Join a WiFi Network.",
+      "highlight": { "x": 150, "y": 150, "w": 500, "h": 50 },
+      "click": [400, 173],
+      "delay": 1400
+    },
+    {
+      "scene": "wifi_picker",
+      "voice": "This is the full WiFi Settings page \u2014 the same one you reach later from Device Settings.",
+      "wait": 3800
+    },
+    {
+      "voice": "On the left, Mode switches between Off, WiFi client, and Hotspot. The Start on Boot dropdown below it remembers what mode to come up in next power-on.",
+      "highlight": { "x": 20, "y": 80, "w": 350, "h": 260 },
+      "wait": 7500
+    },
+    {
+      "voice": "On the right, nearby networks are listed with signal strength. Let's pick Home 2.4.",
+      "highlight": { "x": 395, "y": 110, "w": 380, "h": 50 },
+      "click": [580, 135],
+      "delay": 2600
+    },
+    {
+      "scene": "wifi_connected",
+      "voice": "Connected. The dash's IP now appears in Device Settings so you can open the web editor from anywhere on that network.",
+      "wait": 4500
+    },
+    {
+      "scene": "dashboard",
+      "voice": "And this is what you've just set up \u2014 your ECU's live CAN data rendered through the default layout.",
+      "wait": 5500
+    },
+    {
+      "voice": "RPM at the top, speed and gear in the centre, coolant and throttle bars at the bottom, eight signal panels on each side. Every widget you see here can be moved, resized, or rebound in the web editor.",
+      "wait": 9000
+    },
+    {
+      "voice": "That's the full first-boot flow. You're ready to drive.",
+      "wait": 3000
     }
   ]
 }
