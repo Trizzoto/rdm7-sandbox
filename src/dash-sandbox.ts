@@ -14,12 +14,12 @@
  * requiring a CSS import.
  */
 
-import { loadSandbox, type SandboxModule } from './wasm-loader';
-import { PointerInjector } from './pointer-injector';
-import { HighlightOverlay } from './highlight-overlay';
-import { createVoice, type Voice } from './voiceover';
-import { TutorialRunner } from './tutorial-runner';
-import type { TourScript, TourStep } from './tour-types';
+import { loadSandbox, type SandboxModule } from './wasm-loader.js';
+import { PointerInjector } from './pointer-injector.js';
+import { HighlightOverlay } from './highlight-overlay.js';
+import { createVoice, type Voice } from './voiceover.js';
+import { TutorialRunner } from './tutorial-runner.js';
+import type { TourScript, TourStep } from './tour-types.js';
 
 const DEFAULT_WASM_URL = '/rdm7-sandbox.wasm';
 const DEVICE_W = 800;
@@ -56,6 +56,15 @@ export class DashSandboxElement extends HTMLElement {
   disconnectedCallback() {
     if (this.rafHandle) cancelAnimationFrame(this.rafHandle);
     this.runner?.pause();
+    this.voice?.dispose?.();
+    // Emscripten's Modularize mode exposes _free via the Module — we
+    // let the GC collect the heap buffer but we at least null our
+    // strong refs so SPAs remounting this component don't pile up
+    // Module instances. The script <script> tag stays — re-loading
+    // it is cheap (browser cache) and avoids double-init if the
+    // component reconnects to the same document.
+    this.mod = undefined;
+    this.runner = undefined;
   }
 
   /* ── DOM + styles (inlined so the component drops into any host page) ── */
@@ -283,10 +292,10 @@ export class DashSandboxElement extends HTMLElement {
   /* ── Boot sequence ───────────────────────────────────────────────────── */
 
   private async boot() {
-    const wasmUrl = this.getAttribute('wasm') ?? DEFAULT_WASM_URL;
+    const wasmUrl = this.resolveWasmUrl();
 
     try {
-      this.mod = await loadSandbox(wasmUrl, this.canvas);
+      this.mod = await loadSandbox(wasmUrl, this.canvas, this.hasAttribute('debug'));
     } catch (err) {
       this.showError(`Failed to load sandbox: ${(err as Error).message}`);
       return;
@@ -365,6 +374,26 @@ export class DashSandboxElement extends HTMLElement {
     // Reset the wizard to its fresh-boot scene so every tour starts
     // from the same visual baseline.
     this.mod._sandbox_set_scene(0);
+  }
+
+  /** Resolve the `wasm=` attribute into a safe URL. Only same-origin
+   *  paths and explicit data: blobs are allowed — cross-origin would
+   *  be an open script-injection hole, since wasm-loader.ts appends a
+   *  <script> tag to document.head with this URL. */
+  private resolveWasmUrl(): string {
+    const raw = this.getAttribute('wasm') ?? DEFAULT_WASM_URL;
+    try {
+      const u = new URL(raw, window.location.href);
+      const sameOrigin = u.origin === window.location.origin;
+      if (!sameOrigin && u.protocol !== 'data:') {
+        console.warn(`[dash-sandbox] Refusing cross-origin wasm URL "${raw}"; using default`);
+        return DEFAULT_WASM_URL;
+      }
+      return u.toString();
+    } catch {
+      console.warn(`[dash-sandbox] Invalid wasm URL "${raw}"; using default`);
+      return DEFAULT_WASM_URL;
+    }
   }
 
   /* ── UI helpers ──────────────────────────────────────────────────────── */

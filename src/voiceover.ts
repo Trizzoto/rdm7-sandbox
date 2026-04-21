@@ -11,16 +11,27 @@
 export interface Voice {
   speak(text: string): Promise<void>;
   cancel(): void;
+  /** Release any long-lived resources (event listeners, cached voices). */
+  dispose?(): void;
 }
 
 /** Web Speech API implementation. */
 class WebSpeechVoice implements Voice {
   private voice: SpeechSynthesisVoice | null = null;
+  private voicesChangedHandler: () => void;
 
   constructor(private lang = 'en-US') {
     this.loadVoice();
-    // Some browsers populate voices asynchronously.
-    window.speechSynthesis.addEventListener('voiceschanged', () => this.loadVoice());
+    // Some browsers populate voices asynchronously. Store the handler
+    // so dispose() can remove it — otherwise every component instance
+    // leaks a listener on page-level `window.speechSynthesis`.
+    this.voicesChangedHandler = () => this.loadVoice();
+    window.speechSynthesis.addEventListener('voiceschanged', this.voicesChangedHandler);
+  }
+
+  dispose() {
+    window.speechSynthesis.removeEventListener('voiceschanged', this.voicesChangedHandler);
+    this.cancel();
   }
 
   private loadVoice() {

@@ -37,7 +37,8 @@
     "typecheck": "tsc --noEmit",
     "sync-firmware": "powershell -ExecutionPolicy Bypass -File scripts/sync-firmware.ps1",
     "build-wasm": "powershell -ExecutionPolicy Bypass -File scripts/build.ps1",
-    "prepublishOnly": "npm run typecheck && npm run build"
+    "check-wasm": "node -e \"require('fs').statSync('public/rdm7-sandbox.wasm').size > 10000 || (console.error('public/rdm7-sandbox.wasm missing or empty — run scripts/build.ps1'), process.exit(1))\"",
+    "prepublishOnly": "npm run check-wasm && npm run typecheck && npm run build"
   },
   "keywords": [
     "rdm7",

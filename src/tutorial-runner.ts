@@ -6,11 +6,11 @@
  * wrappers on top of it.
  */
 
-import type { TourScript, TourStep, WizardScene } from './tour-types';
-import type { PointerInjector } from './pointer-injector';
-import type { HighlightOverlay } from './highlight-overlay';
-import type { Voice } from './voiceover';
-import type { SandboxModule } from './wasm-loader';
+import type { TourScript, TourStep, WizardScene } from './tour-types.js';
+import type { PointerInjector } from './pointer-injector.js';
+import type { HighlightOverlay } from './highlight-overlay.js';
+import type { Voice } from './voiceover.js';
+import type { SandboxModule } from './wasm-loader.js';
 
 /** Scene name → numeric code shared with wizard_sandbox.c's SCENE_* defines.
  *  Changing these requires matching changes in C; integer-keyed so the

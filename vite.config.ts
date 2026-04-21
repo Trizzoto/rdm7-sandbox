@@ -10,8 +10,12 @@ import { resolve } from 'path';
  * The WASM artifact is built via scripts/build.ps1 and lives in
  * public/ so Vite serves it untouched at /rdm7-sandbox.wasm.
  */
-export default defineConfig({
-  publicDir: 'public',
+export default defineConfig(({ command }) => ({
+  // Dev: serve public/ as static files. Build: don't copy publicDir
+  // into dist/ — the WASM + emcc JS ship via package.json's `files`
+  // field pointing at public/ directly, and we don't want ~1.7 MB of
+  // duplicates inside the tarball.
+  publicDir: command === 'serve' ? 'public' : false,
 
   build: {
     lib: {
@@ -32,4 +36,4 @@ export default defineConfig({
     port: 5173,
     fs: { allow: ['..'] },
   },
-});
+}));

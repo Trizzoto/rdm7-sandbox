@@ -1,5 +1,4 @@
 {
-  "$schema": "https://raw.githubusercontent.com/Trizzoto/rdm7-sandbox/main/tours/manifest.schema.json",
   "version": 1,
   "tours": [
     {

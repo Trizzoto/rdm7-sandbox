@@ -7,7 +7,7 @@
  * fires cleanly. Drag is just a series of moves.
  */
 
-import type { SandboxModule } from './wasm-loader';
+import type { SandboxModule } from './wasm-loader.js';
 
 export class PointerInjector {
   constructor(private mod: SandboxModule) {}

@@ -35,10 +35,17 @@ type ModuleFactory = (opts?: Partial<SandboxModule>) => Promise<SandboxModule>;
 
 /** Dynamically load the emcc-generated module. The JS file attaches
  *  itself as `window.RDM7Sandbox` (we set EXPORT_NAME to that in
- *  CMakeLists). Called once per sandbox component instance. */
+ *  CMakeLists). Called once per sandbox component instance.
+ *
+ *  @param wasmUrl   Path to rdm7-sandbox.wasm
+ *  @param canvas    Canvas SDL2 renders into
+ *  @param debug     If false (default), silences every print/ESP_LOG
+ *                   line the wasm fires. Set via the component's
+ *                   `debug` attribute. */
 export async function loadSandbox(
   wasmUrl: string,
   canvas: HTMLCanvasElement,
+  debug = false,
 ): Promise<SandboxModule> {
   const scriptUrl = wasmUrl.replace(/\.wasm$/, '.js');
 
@@ -73,15 +80,14 @@ export async function loadSandbox(
       if (p.endsWith('.wasm')) return wasmUrl;
       return p;
     },
-    // Suppress known-harmless SDL event-handler registration noise.
-    // Emscripten's SDL2 port tries to attach handlers to targets like
-    // `#textinput` (text-input polyfill) and `#clipboard` that don't
-    // exist in our host page — each failure prints a scary-looking
-    // error even though there's no functional impact. We still surface
-    // anything else so real bugs aren't hidden.
+    // In debug mode surface everything; otherwise silence print/printErr
+    // so consumer DevTools consoles aren't spammed by every frame's
+    // ESP_LOGI chatter. Known-harmless SDL event-handler errors are
+    // suppressed unconditionally (they're not functional problems).
+    print: debug ? console.log.bind(console) : () => { /* silent */ },
     printErr: (msg: string) => {
       if (typeof msg === 'string' && msg.includes('registerOrRemoveHandler')) return;
-      console.error(msg);
+      if (debug) console.error(msg);
     },
   };
   return factory(opts as Partial<SandboxModule>);

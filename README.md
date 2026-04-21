@@ -43,7 +43,15 @@ npm install
 npm run dev                      # http://localhost:5173
 ```
 
-On Linux / macOS, use the Bash equivalents — `scripts/setup-submodules.sh` + `scripts/build.sh`. *(PS1 versions first; POSIX versions TODO — see issue #1.)*
+The build scripts are currently **PowerShell-only** (targeting the primary developer's Windows environment). Linux / macOS support is tracked — the actual commands are short enough to port by hand if you need to build today:
+
+```bash
+# emsdk-activated shell
+mkdir -p build && cd build
+emcmake cmake .. -G "Unix Makefiles"
+emmake make rdm7-sandbox -j$(nproc)
+cp rdm7-sandbox.{js,wasm} ../public/
+```
 
 ---
 
@@ -78,6 +86,10 @@ Ship `rdm7-sandbox.wasm` + `rdm7-sandbox.js` (from the package's `public/` direc
 | `wasm`     | URL     | `/rdm7-sandbox.wasm`    | Override the WASM asset location.                          |
 | `autoplay` | boolean | `false`                 | Start the tour on page load.                               |
 | `theme`    | enum    | `"dark"`                | `"dark"` or `"light"` — matches your host page styling.    |
+
+### Content Security Policy note
+
+`<dash-sandbox>` boots the WASM module by dynamically injecting a `<script>` tag at `wasm=`. Sites with a strict CSP (`script-src 'self'`) work out of the box because the default URL is same-origin. If you override `wasm=` with a CDN URL, ensure your `script-src` directive includes that origin, or self-host the artifact. Cross-origin `wasm=` values are refused at runtime and fall back to the default.
 
 ### JS API
 

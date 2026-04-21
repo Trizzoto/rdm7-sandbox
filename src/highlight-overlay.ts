@@ -6,7 +6,7 @@
  * and we map device pixels (800×480) into the current canvas size.
  */
 
-import type { Highlight } from './tour-types';
+import type { Highlight } from './tour-types.js';
 
 export class HighlightOverlay {
   private svg: SVGSVGElement;
