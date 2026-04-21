@@ -1,7 +1,8 @@
 node_modules/
 dist/
 build/
-*.wasm
+build/*.wasm
+!public/*.wasm
 *.js.map
 .vite/
 .DS_Store
