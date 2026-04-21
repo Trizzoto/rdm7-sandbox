@@ -152,6 +152,7 @@ export class DashSandboxElement extends HTMLElement {
           display: flex; flex-direction: column; gap: 14px;
           max-width: 860px; margin: 0 auto;
           color: var(--sb-text);
+          position: relative;  /* anchor for the highlight overlay */
         }
         /* Device bezel — matches the user's reference hardware. Flat
          * matte-black frame, consistent ~18 px on all sides, softly
@@ -365,7 +366,9 @@ export class DashSandboxElement extends HTMLElement {
     this.restartBtn  = this.querySelector('[data-act="restart"]') as HTMLButtonElement;
 
     this.overlay = new HighlightOverlay(this.canvas);
-    this.overlay.attach(this.querySelector('.dsb-device') as HTMLElement);
+    // Attach to the root so the blue highlight can legitimately cover
+    // transport buttons / the narration card, not just the canvas.
+    this.overlay.attach(this.querySelector('.dsb-root') as HTMLElement);
     this.voice = createVoice();
 
     this.playBtn.addEventListener('click',    () => this.togglePlay());
