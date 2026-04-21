@@ -66,7 +66,6 @@ export class DashSandboxElement extends HTMLElement {
   private restartBtn!: HTMLButtonElement;
   private loadingEl!: HTMLDivElement;
   private errorEl!: HTMLDivElement;
-  private ledEl!: HTMLSpanElement;
   private keyHandler?: (e: KeyboardEvent) => void;
 
   private overlay!: HighlightOverlay;
@@ -154,118 +153,38 @@ export class DashSandboxElement extends HTMLElement {
           max-width: 860px; margin: 0 auto;
           color: var(--sb-text);
         }
-        /* Premium device bezel.
-         *
-         * Built as three nested layers:
-         *   shell   → the physical housing (deep shadow + subtle
-         *             brushed-metal linear gradient along vertical axis)
-         *   bezel   → the black frame between housing and screen
-         *             (~14 px, with a top-edge glint + bottom rebate)
-         *   screen  → the canvas + a thin glass-reflection overlay
-         *
-         * On top of the bezel I drop a tiny status LED (red when the
-         * tour is playing, faint when paused) and a wordmark so the
-         * unit looks like a real dashboard, not a CSS tile. */
+        /* Device bezel — matches the user's reference hardware. Flat
+         * matte-black frame, consistent ~18 px on all sides, softly
+         * rounded outer corners. No brushed metal, no LED, no wordmark
+         * — the actual dashboard doesn't have those, and this is a
+         * faithful recreation of the shell. */
         .dsb-device-shell {
           position: relative;
-          padding: 8px 8px 8px;
-          border-radius: 14px;
-          background:
-            linear-gradient(180deg, #2e2e2e 0%, #1c1c1c 45%, #242424 55%, #131313 100%);
+          padding: 18px;
+          border-radius: 16px;
+          background: #000;
           box-shadow:
-            0 28px 80px -10px rgba(0, 0, 0, 0.55),
-            0 2px 4px rgba(0, 0, 0, 0.3),
-            inset 0 1px 0 rgba(255, 255, 255, 0.07),
-            inset 0 -1px 0 rgba(0, 0, 0, 0.6);
+            0 18px 40px -8px rgba(0, 0, 0, 0.45),
+            0 2px 4px rgba(0, 0, 0, 0.2);
         }
-        /* Thin top-edge highlight — gives the housing a cast-aluminium
-         * look rather than flat grey plastic. */
-        .dsb-device-shell::before {
-          content: '';
-          position: absolute;
-          inset: 0 20% auto 20%;
-          height: 1px;
-          background: linear-gradient(90deg,
-            transparent, rgba(255, 255, 255, 0.15), transparent);
-          pointer-events: none;
-        }
-
+        /* Kept as a simple wrapper for the screen. No inner frame
+         * decoration — the matte bezel does the work. */
         .dsb-bezel {
           position: relative;
-          padding: 14px 16px 18px;
-          border-radius: 10px;
-          background:
-            linear-gradient(180deg, #0a0a0a 0%, #070707 100%);
-          box-shadow:
-            inset 0 0 0 1px rgba(255, 255, 255, 0.04),
-            inset 0 2px 6px rgba(0, 0, 0, 0.65);
+          border-radius: 6px;
+          overflow: hidden;
         }
-
         .dsb-device {
           position: relative;
           aspect-ratio: 800 / 480;
           background: #000;
-          border-radius: 3px;
+          border-radius: 6px;
           overflow: hidden;
-          box-shadow:
-            inset 0 0 0 1px rgba(255, 255, 255, 0.04),
-            inset 0 1px 2px rgba(0, 0, 0, 0.5),
-            0 0 0 1px rgba(0, 0, 0, 0.7);
+          box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
         }
         .dsb-device canvas {
           display: block; width: 100%; height: 100%;
           touch-action: none; outline: none;
-        }
-        /* Subtle glass glint across the top-left quarter of the
-         * screen. Non-interactive, low opacity so it doesn't compete
-         * with the UI underneath. */
-        .dsb-glint {
-          position: absolute;
-          inset: 0;
-          border-radius: 3px;
-          pointer-events: none;
-          background:
-            linear-gradient(115deg,
-              rgba(255, 255, 255, 0.045) 0%,
-              rgba(255, 255, 255, 0.015) 22%,
-              transparent 45%);
-          mix-blend-mode: screen;
-        }
-
-        /* Dashboard wordmark, lower-right. Monospace tag with the
-         * dimensions etched into it — confirms the user is looking at
-         * the real 800 × 480 panel, not a resized preview. */
-        .dsb-mark {
-          position: absolute;
-          bottom: 4px; right: 16px;
-          color: #3a3a3a;
-          font-family: 'JetBrains Mono', ui-monospace, monospace;
-          font-size: 9px;
-          letter-spacing: 0.3em;
-          text-transform: uppercase;
-          user-select: none;
-          pointer-events: none;
-        }
-        /* Small LED in the lower-left of the bezel. Red-on when a
-         * tour is playing, faint red otherwise. Class toggled in the
-         * transport handler. */
-        .dsb-led {
-          position: absolute;
-          bottom: 6px; left: 18px;
-          width: 6px; height: 6px;
-          border-radius: 50%;
-          background: #4a0404;
-          box-shadow:
-            inset 0 1px 1px rgba(0, 0, 0, 0.5),
-            0 0 0 1px #000;
-          transition: background .2s, box-shadow .2s;
-        }
-        .dsb-led.live {
-          background: var(--sb-accent-hot);
-          box-shadow:
-            inset 0 1px 1px rgba(0, 0, 0, 0.3),
-            0 0 6px rgba(255, 26, 26, 0.8),
-            0 0 0 1px #000;
         }
         /* Loading / error overlays sit on top of the screen only,
          * not the surrounding bezel. Inset matches .dsb-bezel padding
@@ -398,15 +317,12 @@ export class DashSandboxElement extends HTMLElement {
           <div class="dsb-bezel">
             <div class="dsb-device">
               <canvas id="canvas" width="${DEVICE_W}" height="${DEVICE_H}" tabindex="-1"></canvas>
-              <div class="dsb-glint"></div>
               <div class="dsb-loading">
                 <div class="dsb-spinner"></div>
                 <div>LOADING SANDBOX</div>
               </div>
               <div class="dsb-error" style="display:none"></div>
             </div>
-            <span class="dsb-led" aria-hidden="true"></span>
-            <span class="dsb-mark">RDM · 7 · 800 × 480</span>
           </div>
         </div>
 
@@ -443,7 +359,6 @@ export class DashSandboxElement extends HTMLElement {
     this.captionEl   = this.querySelector('.dsb-caption') as HTMLDivElement;
     this.timelineEl  = this.querySelector('.dsb-timeline') as HTMLDivElement;
     this.stepLabelEl = this.querySelector('.dsb-step-label') as HTMLSpanElement;
-    this.ledEl       = this.querySelector('.dsb-led') as HTMLSpanElement;
     this.playBtn     = this.querySelector('[data-act="play"]')    as HTMLButtonElement;
     this.backBtn     = this.querySelector('[data-act="back"]')    as HTMLButtonElement;
     this.nextBtn     = this.querySelector('[data-act="next"]')    as HTMLButtonElement;
@@ -606,7 +521,6 @@ export class DashSandboxElement extends HTMLElement {
       // as-is so layout doesn't jump.
       oldIcon.outerHTML = playing ? ICON_PAUSE : ICON_PLAY;
     }
-    this.ledEl?.classList.toggle('live', playing);
   }
 
   private setCaption(text: string) {

@@ -31,8 +31,13 @@
     },
     {
       "scene": "wifi_connected",
-      "voice": "And that's it. Dashboard is ready — under a minute from power-on.",
-      "wait": 3500
+      "voice": "Dashboard is ready — under a minute from power-on.",
+      "wait": 2500
+    },
+    {
+      "scene": "dashboard",
+      "voice": "And here it is live: RPM, speed, gear, throttle, coolant — the default layout driving your ECU data.",
+      "wait": 7000
     }
   ]
 }

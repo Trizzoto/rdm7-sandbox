@@ -60,8 +60,17 @@
       "wait": 3500
     },
     {
-      "voice": "That's the full first-boot flow. From here you're ready to open the web editor and customise your layout.",
-      "wait": 4000
+      "scene": "dashboard",
+      "voice": "And here it is — your ECU's data, live. This is the default layout with the signals we just bound: RPM, speed, gear, throttle, coolant, and the rest. Starting the engine lights this up just like this.",
+      "wait": 9500
+    },
+    {
+      "voice": "Watch the throttle blip and the RPM climb through the gears. Every panel here is a widget you can reposition or rebind in the web editor.",
+      "wait": 7500
+    },
+    {
+      "voice": "That's the full first-boot flow. You're ready to start customising.",
+      "wait": 3500
     }
   ]
 }

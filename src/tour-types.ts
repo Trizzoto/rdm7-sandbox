@@ -17,7 +17,8 @@ export type WizardScene =
   | 'step2'            /* ECU picker overlay               */
   | 'step3'            /* Connect Your Device              */
   | 'wifi_picker'      /* WiFi scan list                   */
-  | 'wifi_connected';  /* WiFi list with "Connected" label */
+  | 'wifi_connected'   /* WiFi list with "Connected" label */
+  | 'dashboard';       /* Default layout running with mock driving data */
 
 export interface TourStep {
   /** Spoken line. Rendered as a caption underneath; also fed to TTS. */

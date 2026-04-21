@@ -22,6 +22,7 @@ const SCENE_MAP: Record<WizardScene, number> = {
   step3:           3,
   wifi_picker:     4,
   wifi_connected:  5,
+  dashboard:       6,
 };
 
 export interface TutorialEvents {
