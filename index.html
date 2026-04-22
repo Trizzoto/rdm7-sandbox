@@ -138,11 +138,22 @@
     .tour-picker select:hover  { background-color: var(--btn-bg-2); }
     .tour-picker select:focus  { outline: none; box-shadow: 0 0 0 2px rgba(204, 0, 0, 0.35); }
 
+    /* Layout philosophy: keep the whole experience above the fold on
+     * a standard 1080p viewport. Hero collapses to a single inline
+     * eyebrow + heading row beside the device on wide screens, stacks
+     * above on narrow ones. Padding tightened to claw back vertical
+     * space. */
     main {
-      padding: 56px 28px 96px;
-      max-width: 900px; margin: 0 auto;
+      padding: 24px 28px 40px;
+      max-width: 1100px; margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 20px;
     }
-    .hero { margin-bottom: 44px; }
+    .hero {
+      max-width: 720px;
+      margin: 0;
+    }
     .hero-eyebrow {
       font-family: 'JetBrains Mono', ui-monospace, monospace;
       font-size: 10px;
@@ -150,36 +161,46 @@
       text-transform: uppercase;
       color: var(--accent);
       font-weight: 700;
-      margin-bottom: 14px;
+      margin-bottom: 8px;
     }
     h1 {
-      margin: 0 0 18px;
-      font-size: clamp(2.2rem, 4vw, 3rem);
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      line-height: 1.05;
+      margin: 0 0 8px;
+      font-size: clamp(1.5rem, 2.6vw, 2rem);
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      line-height: 1.1;
     }
     .hero-body {
-      max-width: 640px;
+      max-width: 700px;
       color: var(--text-dim);
       font-weight: 400;
-      font-size: 16px;
-      line-height: 1.7;
+      font-size: 14px;
+      line-height: 1.5;
     }
     .hero-body code {
       background: var(--btn-bg);
       color: var(--btn-text);
-      padding: 2px 8px;
+      padding: 1px 6px;
       border-radius: 2px;
       font-family: 'JetBrains Mono', ui-monospace, monospace;
-      font-size: 13px;
+      font-size: 12px;
     }
     .hero-body strong { color: var(--text); font-weight: 600; }
 
+    /* When the viewport has plenty of vertical room (≥ 800 px tall),
+     * shrink the hero further so the device + transport bar comfortably
+     * sit above the fold on a 1366×768 laptop screen too. */
+    @media (max-height: 820px) {
+      main { padding: 16px 28px 24px; gap: 14px; }
+      h1 { font-size: 1.4rem; margin-bottom: 6px; }
+      .hero-eyebrow { font-size: 9px; margin-bottom: 4px; }
+      .hero-body { font-size: 13px; line-height: 1.45; }
+    }
+
     footer {
-      margin-top: 56px;
-      padding: 24px 28px 40px;
-      max-width: 900px; margin-left: auto; margin-right: auto;
+      margin-top: 28px;
+      padding: 18px 28px 24px;
+      max-width: 1100px; margin-left: auto; margin-right: auto;
       color: var(--text-faint);
       font-family: 'JetBrains Mono', ui-monospace, monospace;
       font-size: 11px;

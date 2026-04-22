@@ -66,6 +66,9 @@ export class DashSandboxElement extends HTMLElement {
   private restartBtn!: HTMLButtonElement;
   private loadingEl!: HTMLDivElement;
   private errorEl!: HTMLDivElement;
+  private startupEl!: HTMLDivElement;
+  private startupTitleEl!: HTMLDivElement;
+  private startupBodyEl!: HTMLParagraphElement;
   private keyHandler?: (e: KeyboardEvent) => void;
 
   private overlay!: HighlightOverlay;
@@ -202,6 +205,61 @@ export class DashSandboxElement extends HTMLElement {
           font-size: 12px;
           letter-spacing: 0.05em;
         }
+
+        /* Startup overlay — semi-transparent backdrop with a Start /
+         * Skip prompt. Sits on top of the device until the user
+         * decides; once dismissed it never reappears unless the
+         * component remounts. */
+        .dsb-startup {
+          position: absolute; inset: 0;
+          z-index: 10;
+          border-radius: 3px;
+          display: flex; align-items: center; justify-content: center;
+          background: rgba(6, 6, 6, 0.55);
+          backdrop-filter: blur(6px);
+          -webkit-backdrop-filter: blur(6px);
+          transition: opacity .25s ease;
+        }
+        .dsb-startup.hidden { opacity: 0; pointer-events: none; }
+        .dsb-startup-card {
+          background: var(--sb-surface);
+          border: 1px solid var(--sb-border);
+          border-radius: var(--sb-radius);
+          padding: 22px 26px;
+          max-width: 420px;
+          text-align: center;
+          color: var(--sb-text);
+          box-shadow: 0 18px 48px -8px rgba(0,0,0,0.4);
+        }
+        .dsb-startup-eyebrow {
+          font-family: 'JetBrains Mono', ui-monospace, monospace;
+          font-size: 10px;
+          letter-spacing: 0.22em;
+          text-transform: uppercase;
+          color: var(--sb-accent);
+          font-weight: 700;
+          margin-bottom: 10px;
+        }
+        .dsb-startup-title {
+          font-size: 22px;
+          font-weight: 700;
+          line-height: 1.15;
+          margin: 0 0 8px;
+          letter-spacing: -0.01em;
+        }
+        .dsb-startup-body {
+          color: var(--sb-muted);
+          font-size: 14px;
+          line-height: 1.5;
+          margin: 0 0 18px;
+        }
+        .dsb-startup-actions {
+          display: flex; gap: 8px; justify-content: center;
+        }
+        .dsb-startup-actions .dsb-btn {
+          min-width: 110px;
+          justify-content: center;
+        }
         .dsb-error { color: var(--sb-accent); }
         .dsb-spinner {
           width: 32px; height: 32px;
@@ -323,6 +381,25 @@ export class DashSandboxElement extends HTMLElement {
                 <div>LOADING SANDBOX</div>
               </div>
               <div class="dsb-error" style="display:none"></div>
+              <div class="dsb-startup hidden" data-act="startup">
+                <div class="dsb-startup-card">
+                  <div class="dsb-startup-eyebrow">Guided Tour</div>
+                  <div class="dsb-startup-title" data-slot="title">First-Boot Walkthrough</div>
+                  <p class="dsb-startup-body" data-slot="body">
+                    Take a 60-second narrated tour of the dashboard's first-time
+                    setup — CAN scan, ECU pick, WiFi onboarding — or skip
+                    straight to the device.
+                  </p>
+                  <div class="dsb-startup-actions">
+                    <button class="dsb-btn primary" data-act="start">
+                      ${ICON_PLAY}<span class="label">Start Tour</span>
+                    </button>
+                    <button class="dsb-btn" data-act="skip">
+                      <span class="label">Skip</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -353,9 +430,12 @@ export class DashSandboxElement extends HTMLElement {
       </div>
     `;
 
-    this.canvas      = this.querySelector('#canvas') as HTMLCanvasElement;
-    this.loadingEl   = this.querySelector('.dsb-loading') as HTMLDivElement;
-    this.errorEl     = this.querySelector('.dsb-error') as HTMLDivElement;
+    this.canvas         = this.querySelector('#canvas') as HTMLCanvasElement;
+    this.loadingEl      = this.querySelector('.dsb-loading') as HTMLDivElement;
+    this.errorEl        = this.querySelector('.dsb-error') as HTMLDivElement;
+    this.startupEl      = this.querySelector('.dsb-startup') as HTMLDivElement;
+    this.startupTitleEl = this.querySelector('[data-slot="title"]') as HTMLDivElement;
+    this.startupBodyEl  = this.querySelector('[data-slot="body"]')  as HTMLParagraphElement;
     this.titleEl     = this.querySelector('.dsb-title') as HTMLDivElement;
     this.captionEl   = this.querySelector('.dsb-caption') as HTMLDivElement;
     this.timelineEl  = this.querySelector('.dsb-timeline') as HTMLDivElement;
@@ -375,6 +455,18 @@ export class DashSandboxElement extends HTMLElement {
     this.backBtn.addEventListener('click',    () => this.runner?.back(this.script!));
     this.nextBtn.addEventListener('click',    () => void this.runner?.next(this.script!));
     this.restartBtn.addEventListener('click', () => void this.runner?.play(this.script!, 0));
+
+    // Startup overlay buttons.
+    this.startupEl.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      const act = target.closest('[data-act]')?.getAttribute('data-act');
+      if (act === 'start') {
+        this.dismissStartup();
+        void this.togglePlay();
+      } else if (act === 'skip') {
+        this.dismissStartup();
+      }
+    });
 
     // Keyboard shortcuts. Only active while the pointer is inside
     // this component so the sandbox doesn't hijack the host page's
@@ -446,7 +538,32 @@ export class DashSandboxElement extends HTMLElement {
     (this as any).runner = this.runner;
     (this as any).script = this.script;
 
-    if (this.hasAttribute('autoplay')) void this.togglePlay();
+    // Show the Start / Skip dialog. Filled in with the active tour's
+    // metadata so picker swaps re-prompt with the right title. Hidden
+    // immediately if the host opted into autoplay.
+    if (this.hasAttribute('autoplay')) {
+      void this.togglePlay();
+    } else {
+      this.showStartup(this.script);
+    }
+  }
+
+  /** Make the startup overlay visible with the current tour's metadata. */
+  private showStartup(script: TourScript) {
+    this.startupTitleEl.textContent = script.title ?? 'Guided Tour';
+    const stepCount = script.steps.length;
+    const dur = (script as any).durationSec
+      ? `${(script as any).durationSec}-second`
+      : `${stepCount}-step`;
+    this.startupBodyEl.textContent =
+      `Take a ${dur} narrated walkthrough of the dashboard's first-time ` +
+      `setup — CAN scan, ECU pick, WiFi onboarding — or skip straight to the device.`;
+    this.startupEl.classList.remove('hidden');
+  }
+
+  /** Hide the startup overlay (Start or Skip clicked). */
+  private dismissStartup() {
+    this.startupEl.classList.add('hidden');
   }
 
   /** Hot-swap the active tour without reloading the WASM module.
@@ -483,6 +600,10 @@ export class DashSandboxElement extends HTMLElement {
     // Reset the wizard to its fresh-boot scene so every tour starts
     // from the same visual baseline.
     this.mod._sandbox_set_scene(0);
+
+    // Re-prompt with the new tour's title so the user knows what
+    // they're about to play.
+    this.showStartup(this.script);
   }
 
   /** Resolve the `wasm=` attribute into a safe URL. Only same-origin
