@@ -26,3 +26,5 @@ Makefile
 # Synced firmware sources (pulled via scripts/sync-firmware.ps1)
 # Kept out of git to avoid double-ownership with the firmware repo.
 firmware_src/
+
+.vercel
