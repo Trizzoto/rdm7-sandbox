@@ -1,0 +1,5 @@
+{
+  "buildCommand": "vite build --config vite.site.config.ts",
+  "outputDirectory": "dist-site",
+  "framework": null
+}
