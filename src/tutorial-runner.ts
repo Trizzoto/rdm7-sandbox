@@ -15,7 +15,7 @@ import type { SandboxModule } from './wasm-loader.js';
 /** Scene name → numeric code shared with wizard_sandbox.c's SCENE_* defines.
  *  Changing these requires matching changes in C; integer-keyed so the
  *  C side doesn't need a string parser. */
-const SCENE_MAP: Record<WizardScene, number> = {
+export const SCENE_MAP: Record<WizardScene, number> = {
   step1:           0,
   step1_done:      1,
   step2:           2,

@@ -18,7 +18,7 @@ import { loadSandbox, type SandboxModule } from './wasm-loader.js';
 import { PointerInjector } from './pointer-injector.js';
 import { HighlightOverlay } from './highlight-overlay.js';
 import { createVoice, type Voice } from './voiceover.js';
-import { TutorialRunner } from './tutorial-runner.js';
+import { TutorialRunner, SCENE_MAP } from './tutorial-runner.js';
 import type { TourScript, TourStep } from './tour-types.js';
 
 const DEFAULT_WASM_URL = '/rdm7-sandbox.wasm';
@@ -465,6 +465,11 @@ export class DashSandboxElement extends HTMLElement {
         void this.togglePlay();
       } else if (act === 'skip') {
         this.dismissStartup();
+        // Jump the wizard to the dashboard scene so Skip lands on the
+        // running default layout, not the half-dimmed CAN Bus Setup
+        // card. Mirrors the device behaviour of "first_run_done" being
+        // set — wizard never shows, you see the dashboard immediately.
+        this.mod?._sandbox_set_scene(SCENE_MAP.dashboard);
       }
     });
 

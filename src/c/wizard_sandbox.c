@@ -1068,33 +1068,26 @@ static void _dash_tick(lv_timer_t *t) {
     signal_inject_test_value("FUEL_PRESSURE",   _wave(ms, 48.0f,  2.0f, 3600.0, 2000));
 }
 
-static void _show_dashboard(void) {
-    /* 1) Tear down any wizard chrome so the dashboard has the whole
-     *    800 × 480 to itself — that's how the device boots once
-     *    first_run_done is set. */
-    if (s_dash_timer) { lv_timer_del(s_dash_timer); s_dash_timer = NULL; }
-    _rebuild_base_overlay();
-    if (s_overlay && lv_obj_is_valid(s_overlay)) lv_obj_del(s_overlay);
-    s_overlay = s_card = NULL;
+/* Build the dashboard ONCE on the active screen. Idempotent — repeat
+ * calls during scene transitions are no-ops. The drive cycle timer
+ * keeps ticking the entire session, so widgets behind the wizard
+ * overlay are still drawing live data (matches firmware behaviour:
+ * the wizard sits on top of an already-running default layout). */
+static void _ensure_dashboard_loaded(void) {
+    if (s_dash_screen && lv_obj_is_valid(s_dash_screen)) return;
 
-    /* 2) Fresh screen on pure black. layout_manager_apply_json creates
-     *    and parents every widget to this root. */
-    lv_obj_t *old = lv_scr_act();
     s_dash_screen = lv_obj_create(NULL);
     lv_obj_set_style_bg_color(s_dash_screen, lv_color_black(), 0);
     lv_obj_set_style_bg_opa(s_dash_screen, LV_OPA_COVER, 0);
     lv_obj_clear_flag(s_dash_screen, LV_OBJ_FLAG_SCROLLABLE);
+    lv_scr_load(s_dash_screen);
 
-    /* 3) Reset registries so a fresh load_layout_json isn't stacking on
-     *    top of stale widget/signal state from a previous scene. */
     widget_registry_reset();
     signal_registry_reset();
     font_manager_reset_instances();
     font_manager_init();
     signal_registry_init();
 
-    /* 4) Build the firmware's canonical default layout in memory and
-     *    apply it via the real widget creation path. */
     cJSON *root = dashboard_build_default_layout_root();
     if (root) {
         esp_err_t err = layout_manager_apply_json(root, s_dash_screen);
@@ -1106,60 +1099,72 @@ static void _show_dashboard(void) {
         printf("[dash] dashboard_build_default_layout_root returned NULL\n");
     }
 
-    /* 5) Swap screens + cleanup. */
-    lv_scr_load(s_dash_screen);
-    if (old && lv_obj_is_valid(old)) lv_obj_del(old);
-
-    /* 6) Start the synthetic CAN drive cycle. */
+    /* Synthetic CAN drive cycle starts immediately and runs for the
+     * lifetime of the WASM module — even while the wizard overlay
+     * obscures the dashboard. */
     s_dash_started_ms = emscripten_get_now();
+    if (s_dash_timer) lv_timer_del(s_dash_timer);
     s_dash_timer = lv_timer_create(_dash_tick, 60, NULL);
+}
+
+/* SCENE_DASHBOARD just hides the wizard overlay — the dashboard is
+ * already there, drawing under it. */
+static void _show_dashboard(void) {
+    _ensure_dashboard_loaded();
+    if (s_overlay && lv_obj_is_valid(s_overlay)) {
+        lv_obj_del(s_overlay);
+    }
+    s_overlay = s_card = s_step1 = s_step3 = NULL;
+    s_scan_status = s_scan_progress = s_scan_bar = s_scan_detail = NULL;
+    s_btn_apply = s_btn_next1 = s_btn_cancel = NULL;
+    for (int i = 0; i < 4; i++) s_scan_results[i] = NULL;
+    if (s_ecu_overlay && lv_obj_is_valid(s_ecu_overlay))   lv_obj_del(s_ecu_overlay);
+    if (s_wifi_overlay && lv_obj_is_valid(s_wifi_overlay)) lv_obj_del(s_wifi_overlay);
+    s_ecu_overlay = s_ecu_make_dd = s_ecu_ver_dd = s_ecu_apply = NULL;
+    s_wifi_overlay = s_wifi_status = s_wifi_list = NULL;
 }
 
 /* ── Teardown / public entry ─────────────────────────────────────────── */
 
+/* Skip / Finish from the wizard. Drops the overlay so the dashboard
+ * (which has been running in the background the whole time) becomes
+ * visible. No "Setup Complete" splash — the device doesn't have one
+ * either; once first_run_done is set, you're just at the dashboard. */
 static void _close_wizard(void) {
-    if (s_scan_timer) { lv_timer_del(s_scan_timer); s_scan_timer = NULL; }
+    if (s_scan_timer)         { lv_timer_del(s_scan_timer);         s_scan_timer         = NULL; }
     if (s_wifi_connect_timer) { lv_timer_del(s_wifi_connect_timer); s_wifi_connect_timer = NULL; }
     _wifi_close();
     _ecu_close();
     if (s_overlay && lv_obj_is_valid(s_overlay)) lv_obj_del(s_overlay);
     s_overlay = s_card = s_step1 = s_step3 = NULL;
-    /* Show a post-wizard "ready" blurb. */
-    lv_obj_t *scr = lv_scr_act();
-    lv_obj_clean(scr);
-    lv_obj_t *t = lv_label_create(scr);
-    lv_label_set_text(t, "Setup Complete");
-    lv_obj_center(t);
-    lv_obj_set_style_text_font(t, THEME_FONT_LARGE, 0);
-    lv_obj_set_style_text_color(t, THEME_COLOR_ACCENT_BLUE, 0);
+    s_scan_status = s_scan_progress = s_scan_bar = s_scan_detail = NULL;
+    s_btn_apply = s_btn_next1 = s_btn_cancel = NULL;
+    for (int i = 0; i < 4; i++) s_scan_results[i] = NULL;
 }
 
-/* Rebuild the overlay + card from scratch. Called on initial start and
- * on every scene jump (Back button in the tour) so each scene starts
- * from a guaranteed-clean state. Cheap: LVGL object creation is fast. */
+/* Rebuild the wizard overlay + card on top of the dashboard. Called
+ * on every scene transition (Play, Next, Back, jump-to-step) so each
+ * scene starts from a guaranteed-clean state. Crucially: this does
+ * NOT touch the dashboard screen / widgets / drive timer — those live
+ * underneath the wizard for the whole session, exactly like firmware. */
 static void _rebuild_base_overlay(void) {
-    /* Tear down any lingering state first. */
+    /* Make sure the dashboard exists and is the active screen. */
+    _ensure_dashboard_loaded();
+
+    /* Tear down only wizard-side state. */
     if (s_scan_timer)         { lv_timer_del(s_scan_timer);         s_scan_timer         = NULL; }
     if (s_wifi_connect_timer) { lv_timer_del(s_wifi_connect_timer); s_wifi_connect_timer = NULL; }
-    if (s_dash_timer) { lv_timer_del(s_dash_timer); s_dash_timer = NULL; }
-    s_dash_screen = NULL;
     if (s_ecu_overlay && lv_obj_is_valid(s_ecu_overlay))   lv_obj_del(s_ecu_overlay);
     if (s_wifi_overlay && lv_obj_is_valid(s_wifi_overlay)) lv_obj_del(s_wifi_overlay);
     s_ecu_overlay = s_ecu_make_dd = s_ecu_ver_dd = s_ecu_apply = NULL;
     s_wifi_overlay = s_wifi_status = s_wifi_list = NULL;
 
-    /* Replace the screen so stray orphan objects don't accumulate across
-     * scene changes — LVGL cleans up everything parented to the old
-     * screen when it's deleted. */
-    lv_obj_t *old_scr = lv_scr_act();
-    lv_obj_t *scr = lv_obj_create(NULL);
-    lv_obj_set_style_bg_color(scr, THEME_COLOR_BG, 0);
-    lv_obj_set_style_bg_opa(scr, LV_OPA_COVER, 0);
-    lv_obj_clear_flag(scr, LV_OBJ_FLAG_SCROLLABLE);
-    lv_scr_load(scr);
-    if (old_scr && lv_obj_is_valid(old_scr)) lv_obj_del(old_scr);
+    if (s_overlay && lv_obj_is_valid(s_overlay)) lv_obj_del(s_overlay);
 
-    s_overlay = lv_obj_create(scr);
+    /* Build the dimming overlay + card on the dashboard screen. The
+     * 80% black backdrop lets the running dashboard show through
+     * faintly, matching the firmware's first-run wizard layering. */
+    s_overlay = lv_obj_create(s_dash_screen);
     lv_obj_remove_style_all(s_overlay);
     lv_obj_set_size(s_overlay, lv_pct(100), lv_pct(100));
     lv_obj_align(s_overlay, LV_ALIGN_CENTER, 0, 0);
@@ -1190,6 +1195,13 @@ static void _rebuild_base_overlay(void) {
  * button). Scenes are integer codes — see the #defines above. */
 EMSCRIPTEN_KEEPALIVE
 void sandbox_set_scene(int scene) {
+    /* Dashboard scene is the "no overlay" state — short-circuit before
+     * we rebuild a wizard chrome we'd just delete a moment later. */
+    if (scene == SCENE_DASHBOARD) {
+        _show_dashboard();
+        return;
+    }
+
     _rebuild_base_overlay();
 
     switch (scene) {
