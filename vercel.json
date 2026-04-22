@@ -1,5 +1,5 @@
 {
-  "buildCommand": "vite build --config vite.site.config.ts",
+  "buildCommand": "vite build --config vite.site.config.ts && cp -r tours dist-site/tours",
   "outputDirectory": "dist-site",
   "framework": null
 }
