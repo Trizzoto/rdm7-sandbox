@@ -138,28 +138,30 @@
     .tour-picker select:hover  { background-color: var(--btn-bg-2); }
     .tour-picker select:focus  { outline: none; box-shadow: 0 0 0 2px rgba(204, 0, 0, 0.35); }
 
-    /* Layout philosophy: dash-first. The whole device + transport bar
-     * must sit above the fold on boot on anything down to ~720 px tall.
-     * Hero text moved BELOW the device (bot-of-fold context) so the
-     * first thing a visitor sees is the product running, not prose. */
+    /* Layout philosophy: dash-first, side-by-side on desktop, stacked
+     * on mobile. The whole experience must fit above the fold on a
+     * standard 1080p browser viewport. Dash sized comfortably (~640px
+     * on desktop, full-width on mobile) so it never feels cramped. */
     main {
-      padding: 12px 28px 24px;
-      max-width: 1100px; margin: 0 auto;
+      padding: 16px 28px 24px;
+      max-width: 1200px; margin: 0 auto;
       display: grid;
       grid-template-columns: minmax(0, 1fr);
-      gap: 14px;
+      gap: 20px;
+      align-items: center;
+    }
+    /* Sizes the dash-sandbox custom element. Internally it caps at
+     * 860 px; we pin it tighter so desktop has room for the text
+     * column alongside, and mobile doesn't waste space on bezels. */
+    dash-sandbox {
+      display: block;
+      width: 100%;
+      max-width: 640px;
+      margin: 0 auto;
     }
     .hero {
-      max-width: 900px;
+      max-width: 520px;
       margin: 0 auto;
-      text-align: center;
-    }
-    .hero-row {
-      display: flex;
-      align-items: baseline;
-      justify-content: center;
-      gap: 14px;
-      flex-wrap: wrap;
     }
     .hero-eyebrow {
       font-family: 'JetBrains Mono', ui-monospace, monospace;
@@ -168,30 +170,48 @@
       text-transform: uppercase;
       color: var(--accent);
       font-weight: 700;
+      margin-bottom: 10px;
     }
     h1 {
-      margin: 0;
-      font-size: 1.25rem;
+      margin: 0 0 12px;
+      font-size: clamp(1.4rem, 2vw, 1.8rem);
       font-weight: 700;
-      letter-spacing: -0.01em;
+      letter-spacing: -0.015em;
       line-height: 1.2;
     }
     .hero-body {
-      margin: 6px auto 0;
-      max-width: 720px;
+      margin: 0;
       color: var(--text-dim);
       font-weight: 400;
-      font-size: 13px;
-      line-height: 1.5;
+      font-size: 14px;
+      line-height: 1.55;
     }
     .hero-body strong { color: var(--text); font-weight: 600; }
+    .hero-body + .hero-body { margin-top: 10px; }
 
-    @media (max-height: 820px) {
-      main { padding: 8px 28px 16px; gap: 10px; }
-      .hero-body { font-size: 12px; line-height: 1.4; }
+    /* Desktop: two columns — dash on the left, text column on the
+     * right. `min-width: 0` on both so neither pushes the grid open
+     * when the dash's device bezel renders. */
+    @media (min-width: 980px) {
+      main {
+        grid-template-columns: minmax(0, 1fr) minmax(280px, 420px);
+        gap: 36px;
+        padding: 24px 28px 32px;
+      }
+      .hero { text-align: left; margin: 0; }
+      dash-sandbox { margin: 0; }
     }
-    @media (max-height: 720px) {
-      .hero-body { display: none; }
+
+    /* Tall desktop — more breathing room. */
+    @media (min-width: 980px) and (min-height: 900px) {
+      main { padding: 36px 28px 40px; }
+      h1 { font-size: 1.9rem; margin-bottom: 14px; }
+    }
+
+    /* Mobile: text compact below the dash. */
+    @media (max-width: 979px) {
+      .hero { text-align: center; }
+      .hero-body { font-size: 13px; }
     }
 
     footer {
@@ -233,14 +253,14 @@
     ></dash-sandbox>
 
     <section class="hero">
-      <div class="hero-row">
-        <span class="hero-eyebrow">Guided Tour</span>
-        <h1>Your dash, in the browser.</h1>
-      </div>
+      <div class="hero-eyebrow">Guided Tour</div>
+      <h1>Your dash, in the browser.</h1>
       <p class="hero-body">
-        The real RDM-7 firmware compiled to WebAssembly. Pick a tour — narration and
-        scripted clicks walk you through the setup and every screen.
-        <strong>Play</strong> to start; dots to scrub.
+        The real RDM-7 firmware compiled to WebAssembly — first-run wizard, Device Settings,
+        widget editor, Wi-Fi manager, the lot.
+      </p>
+      <p class="hero-body">
+        Pick a tour on the right. <strong>Play</strong> to start; dots to scrub.
       </p>
     </section>
   </main>
