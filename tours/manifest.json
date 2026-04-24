@@ -49,6 +49,13 @@
       "file": "widget-config.json",
       "description": "Tap any widget to open the config modal. Covers the Data / Presets / Alerts tabs, signal binding, CAN bus settings, and the save-or-cancel footer.",
       "durationSec": 75
+    },
+    {
+      "id": "wifi-setup",
+      "title": "Wi-Fi & Connectivity",
+      "file": "wifi-setup.json",
+      "description": "The full multi-SSID Wi-Fi manager — Client vs Hotspot modes, Start-on-Boot, hotspot password, and the networks list. Explains how to edit layouts from your phone at the track.",
+      "durationSec": 75
     }
   ]
 }

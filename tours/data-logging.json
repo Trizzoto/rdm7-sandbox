@@ -36,11 +36,22 @@
       "voice": "Peak Hold is the zero-configuration version — every signal's all-time maximum and minimum is tracked automatically, stored in NVS, and survives power cycles. Tap View Peaks for the full table.",
       "scrollSection": "peaks",
       "highlight": { "x": 270, "y": 80, "w": 240, "h": 100 },
+      "wait": 8000
+    },
+    {
+      "scene": "peaks",
+      "voice": "Here's the table. Every registered signal in the active layout, with its current reading in teal, minimum in green, maximum in amber. Scrollable if the list is longer than the screen.",
       "wait": 9000
     },
     {
-      "voice": "Reset Peaks wipes the record. Useful before a fresh session — otherwise yesterday's pull masks today's numbers.",
+      "voice": "Reset All in the top-right clears every min and max back to the current value. Use it at the start of a new session so yesterday's numbers don't mask today's.",
+      "highlight": { "x": 680, "y": 15, "w": 110, "h": 30 },
+      "wait": 7000
+    },
+    {
+      "scene": "device_settings",
       "scrollSection": "peaks",
+      "voice": "Back in Device Settings — the Reset Peaks button here does the same thing without opening the table.",
       "highlight": { "x": 270, "y": 80, "w": 240, "h": 100 },
       "wait": 6500
     },

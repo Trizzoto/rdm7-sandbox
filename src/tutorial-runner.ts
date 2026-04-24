@@ -27,6 +27,9 @@ export const SCENE_MAP: Record<WizardScene, number> = {
   setup_menu:       8,
   device_settings:  9,
   widget_config:   10,
+  wifi_settings:   11,
+  peaks:           12,
+  diagnostics:     13,
 };
 
 export interface TutorialEvents {

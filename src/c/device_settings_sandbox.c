@@ -65,6 +65,11 @@
 #define THEME_PAD_SMALL                 6
 #define THEME_PAD_NORMAL                10
 
+/* Live secondary screens — implemented in extra_screens_sandbox.c. */
+extern void wifi_settings_sandbox_open(lv_obj_t *return_screen);
+extern void peaks_sandbox_open(lv_obj_t *return_screen);
+extern void diagnostics_sandbox_open(lv_obj_t *return_screen);
+
 /* Live display dimming — dims the <canvas> via CSS filter so the user
  * sees the slider actually affecting screen brightness, not just the
  * %-label. LVGL can't dim its own output, but filtering the element
@@ -244,6 +249,24 @@ static void _log_toggle_cb(lv_event_t *e) {
 }
 
 static void _dropdown_noop_cb(lv_event_t *e) { (void)e; }
+
+/* Launchers — hop out to a full-screen sibling that uses this screen
+ * as the return target. On close the child script reloads s_settings
+ * so the scroll position and live-widget references stay consistent. */
+static void _open_wifi_cb(lv_event_t *e) {
+    if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
+    wifi_settings_sandbox_open(s_settings_screen);
+}
+
+static void _open_peaks_cb(lv_event_t *e) {
+    if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
+    peaks_sandbox_open(s_settings_screen);
+}
+
+static void _open_diag_cb(lv_event_t *e) {
+    if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
+    diagnostics_sandbox_open(s_settings_screen);
+}
 
 /* Placeholder clicks for subsystems we don't emulate yet. */
 static void _placeholder_cb(lv_event_t *e) {
@@ -517,7 +540,7 @@ void device_settings_sandbox_open(lv_obj_t *return_screen) {
     lv_obj_center(wifi_blbl);
     lv_obj_set_style_text_font(wifi_blbl, THEME_FONT_SMALL, 0);
     lv_obj_set_style_text_color(wifi_blbl, THEME_COLOR_TEXT_ON_ACCENT, 0);
-    lv_obj_add_event_cb(wifi_btn, _placeholder_cb, LV_EVENT_CLICKED, "Wi-Fi Settings - preview");
+    lv_obj_add_event_cb(wifi_btn, _open_wifi_cb, LV_EVENT_CLICKED, NULL);
 
     s_wifi_status_label = lv_label_create(net_sec);
     lv_label_set_text(s_wifi_status_label, "WiFi: Home_2.4 (-42 dBm)");
@@ -683,7 +706,7 @@ void device_settings_sandbox_open(lv_obj_t *return_screen) {
     lv_obj_center(view_lbl);
     lv_obj_set_style_text_font(view_lbl, THEME_FONT_SMALL, 0);
     lv_obj_set_style_text_color(view_lbl, THEME_COLOR_TEXT_PRIMARY, 0);
-    lv_obj_add_event_cb(view_btn, _placeholder_cb, LV_EVENT_CLICKED, "Peaks table - preview");
+    lv_obj_add_event_cb(view_btn, _open_peaks_cb, LV_EVENT_CLICKED, NULL);
 
     lv_obj_t *reset_btn = lv_btn_create(peak_sec);
     lv_obj_set_size(reset_btn, 110, 30);
@@ -828,7 +851,7 @@ void device_settings_sandbox_open(lv_obj_t *return_screen) {
 
     /* ── Footer buttons ──────────────────────────────────────────── */
     _footer_btn(content, "System Diagnostics", THEME_COLOR_TEXT_PRIMARY,
-                _placeholder_cb, "System Diagnostics - preview");
+                _open_diag_cb, NULL);
     _footer_btn(content, "Run Setup Wizard", THEME_COLOR_TEXT_PRIMARY,
                 _placeholder_cb, "Setup Wizard - preview");
     _footer_btn(content, "Reset to Default", THEME_COLOR_STATUS_ERROR,

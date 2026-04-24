@@ -22,7 +22,10 @@ export type WizardScene =
   | 'dashboard_menu'   /* Dashboard + floating Menu button revealed */
   | 'setup_menu'       /* Setup Menu modal (Layout / Splash / Device Settings) */
   | 'device_settings'  /* Device Settings screen */
-  | 'widget_config';   /* Widget config modal over dashboard */
+  | 'widget_config'    /* Widget config modal over dashboard */
+  | 'wifi_settings'    /* Multi-SSID Wi-Fi Settings screen */
+  | 'peaks'            /* Signal peak / min / max table */
+  | 'diagnostics';     /* System health / diagnostics */
 
 export interface TourStep {
   /** Spoken line. Rendered as a caption underneath; also fed to TTS. */

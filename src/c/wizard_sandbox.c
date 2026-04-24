@@ -155,9 +155,12 @@ static double   s_dash_started_ms = 0;
 #define SCENE_SETUP_MENU      8  /* Setup Menu modal (Layout/Splash)  */
 #define SCENE_DEVICE_SETTINGS 9  /* Device Settings screen            */
 #define SCENE_WIDGET_CONFIG  10  /* Widget config modal over dashboard */
+#define SCENE_WIFI_SETTINGS  11  /* Multi-SSID Wi-Fi Settings screen   */
+#define SCENE_PEAKS          12  /* Signal peaks / min table           */
+#define SCENE_DIAGNOSTICS    13  /* System health / diagnostics        */
 
 /* External hooks (src/c/menu_sandbox.c, src/c/device_settings_sandbox.c,
- * src/c/widget_config_sandbox.c). */
+ * src/c/widget_config_sandbox.c, src/c/extra_screens_sandbox.c). */
 extern void menu_sandbox_attach_dashboard(lv_obj_t *dash_screen);
 extern void menu_sandbox_show_menu_button(void);
 extern void menu_sandbox_hide_menu_button(void);
@@ -167,6 +170,12 @@ extern void device_settings_sandbox_open(lv_obj_t *return_screen);
 extern void device_settings_sandbox_close(void);
 extern void widget_config_sandbox_open(lv_obj_t *return_screen);
 extern void widget_config_sandbox_close(void);
+extern void wifi_settings_sandbox_open(lv_obj_t *return_screen);
+extern void wifi_settings_sandbox_close(void);
+extern void peaks_sandbox_open(lv_obj_t *return_screen);
+extern void peaks_sandbox_close(void);
+extern void diagnostics_sandbox_open(lv_obj_t *return_screen);
+extern void diagnostics_sandbox_close(void);
 
 /* ── Forward decls ───────────────────────────────────────────────────── */
 static void _show_step1(void);
@@ -1233,7 +1242,10 @@ void sandbox_set_scene(int scene) {
         scene == SCENE_DASHBOARD_MENU ||
         scene == SCENE_SETUP_MENU ||
         scene == SCENE_DEVICE_SETTINGS ||
-        scene == SCENE_WIDGET_CONFIG) {
+        scene == SCENE_WIDGET_CONFIG ||
+        scene == SCENE_WIFI_SETTINGS ||
+        scene == SCENE_PEAKS ||
+        scene == SCENE_DIAGNOSTICS) {
         /* Drop wizard overlay if any. */
         if (s_overlay && lv_obj_is_valid(s_overlay)) {
             lv_obj_del(s_overlay);
@@ -1250,6 +1262,9 @@ void sandbox_set_scene(int scene) {
         menu_sandbox_close_setup_menu();
         device_settings_sandbox_close();
         widget_config_sandbox_close();
+        wifi_settings_sandbox_close();
+        peaks_sandbox_close();
+        diagnostics_sandbox_close();
         menu_sandbox_hide_menu_button();
 
         if (scene == SCENE_DASHBOARD_MENU) {
@@ -1260,6 +1275,12 @@ void sandbox_set_scene(int scene) {
             device_settings_sandbox_open(s_dash_screen);
         } else if (scene == SCENE_WIDGET_CONFIG) {
             widget_config_sandbox_open(s_dash_screen);
+        } else if (scene == SCENE_WIFI_SETTINGS) {
+            wifi_settings_sandbox_open(s_dash_screen);
+        } else if (scene == SCENE_PEAKS) {
+            peaks_sandbox_open(s_dash_screen);
+        } else if (scene == SCENE_DIAGNOSTICS) {
+            diagnostics_sandbox_open(s_dash_screen);
         }
         return;
     }
