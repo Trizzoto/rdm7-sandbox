@@ -561,6 +561,10 @@ static void _show_step2(void) {
     lv_obj_set_style_radius(s_ecu_make_dd, THEME_RADIUS_NORMAL, 0);
     lv_obj_set_style_pad_all(s_ecu_make_dd, 8, 0);
     lv_obj_add_event_cb(s_ecu_make_dd, _ecu_make_changed_cb, LV_EVENT_VALUE_CHANGED, NULL);
+    /* Default to Haltech — by far the most common ECU for RDM-7 customers.
+     * Index matches the position of Haltech in the deduped makes list
+     * (ECU Master, MegaSquirt, Haltech, MaxxECU, Ford, Link ECU, RDM-7). */
+    lv_dropdown_set_selected(s_ecu_make_dd, 2);
 
     /* Version label + dropdown */
     lv_obj_t *ver_lbl = lv_label_create(card);
@@ -1193,6 +1197,12 @@ static void _close_wizard(void) {
 static void _rebuild_base_overlay(void) {
     /* Make sure the dashboard exists and is the active screen. */
     _ensure_dashboard_loaded();
+
+    /* Kill the floating Menu button + its auto-hide timer so it doesn't
+     * peek through the wizard's semi-transparent backdrop. Previously a
+     * dashboard-scene tap (or leftover state from a prior scene) could
+     * leave the button visible while the wizard ran over the top. */
+    menu_sandbox_hide_menu_button();
 
     /* Tear down only wizard-side state. */
     if (s_scan_timer)         { lv_timer_del(s_scan_timer);         s_scan_timer         = NULL; }

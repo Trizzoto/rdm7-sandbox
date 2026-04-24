@@ -43,11 +43,11 @@ export class HighlightOverlay {
       pointerEvents:   'none',
       display:         'none',
       zIndex:          '5',
-      /* Smooth position/size transition as steps advance — no pulsing
-       * so screenshots and reduced-motion users get a clean shot. */
-      transition:      'left .25s ease, top .25s ease, ' +
-                       'width .25s ease, height .25s ease, ' +
-                       'opacity .15s ease',
+      /* Only animate opacity (visibility). Position/size changes on
+       * step advance must be INSTANT — animating them lets the user
+       * see a highlight sliding over irrelevant content on its way
+       * to the real target, which looks like a bug. */
+      transition:      'opacity .15s ease',
     });
 
     /* Accent-tinted corner brackets add a subtle "target reticle"
