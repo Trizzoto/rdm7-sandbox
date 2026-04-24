@@ -4,56 +4,35 @@
   "steps": [
     {
       "scene": "dashboard",
-      "voice": "Every widget on the dashboard is configurable — what signal it reads, what label it shows, how many decimals, what colour it turns when something's wrong. You change all of that with a tap.",
-      "wait": 8000
-    },
-    {
-      "voice": "Let's say you want the third panel — coolant temperature — to read oil pressure instead. Tap the panel.",
+      "voice": "Tap any widget to edit its signal, label, colours or thresholds.",
       "highlight": { "x": 0, "y": 120, "w": 330, "h": 130 },
-      "wait": 5500
+      "wait": 3800
     },
     {
       "scene": "widget_config",
-      "voice": "The widget config modal opens. Header shows which widget you tapped and its type. Three tabs underneath — Data, Presets, Alerts.",
-      "wait": 7500
+      "voice": "The config modal. Three tabs: Data, Presets, Alerts.",
+      "highlight": { "x": 105, "y": 76, "w": 590, "h": 36 },
+      "wait": 3800
     },
     {
-      "voice": "The Data tab is where you live most of the time. Two cards — Display on top, Data Source below.",
-      "highlight": { "x": 105, "y": 105, "w": 590, "h": 40 },
-      "wait": 6000
+      "voice": "Data tab — Display section sets the label and decimals.",
+      "highlight": { "x": 110, "y": 112, "w": 580, "h": 130 },
+      "wait": 4000
     },
     {
-      "voice": "Display controls what the user sees. Change the Label text, and every new reading picks it up immediately. Decimals picks zero to four — how precise the number should read.",
-      "highlight": { "x": 110, "y": 148, "w": 580, "h": 150 },
-      "wait": 8500
-    },
-    {
-      "voice": "Data Source is the heart of the widget — which CAN signal drives it. Tap the dropdown and pick any signal from the active layout. Fourteen signals available by default, more if your ECU preset brings them.",
-      "highlight": { "x": 110, "y": 300, "w": 580, "h": 120 },
-      "wait": 9000
-    },
-    {
-      "voice": "If you've got a signal the preset doesn't know about, expand CAN Bus Settings and enter the CAN ID, bit position, length, scale and offset directly. The editor remembers these so you only type it once.",
-      "highlight": { "x": 110, "y": 420, "w": 580, "h": 80 },
-      "wait": 9000
-    },
-    {
-      "voice": "The Presets tab pulls pre-built signal templates for popular ECUs. The Alerts tab sets high and low thresholds — crosses a limit, the widget turns red.",
-      "highlight": { "x": 105, "y": 105, "w": 590, "h": 40 },
-      "wait": 7500
-    },
-    {
-      "voice": "Cancel drops every change. Save writes to flash and reloads the layout so the widget re-renders with the new binding.",
-      "highlight": { "x": 105, "y": 425, "w": 590, "h": 50 },
-      "wait": 6500
-    },
-    {
-      "voice": "Same modal on a bar widget has a bar-low and bar-high range. Same modal on a warning circle adds threshold inputs. The shell is consistent — the fields adapt to the widget type.",
-      "wait": 7500
-    },
-    {
-      "voice": "That's it — tap, edit, save. Every widget on the screen is one step away from a new binding.",
+      "voice": "Data Source picks the CAN signal. 14 defaults, more with your ECU preset.",
+      "highlight": { "x": 110, "y": 252, "w": 580, "h": 120 },
       "wait": 4500
+    },
+    {
+      "voice": "Expand CAN Bus Settings for a custom signal — CAN ID, bit position, scale, offset.",
+      "highlight": { "x": 110, "y": 370, "w": 580, "h": 60 },
+      "wait": 4500
+    },
+    {
+      "voice": "Cancel drops changes. Save writes to flash and reloads the layout.",
+      "highlight": { "x": 105, "y": 408, "w": 590, "h": 52 },
+      "wait": 3800
     }
   ]
 }

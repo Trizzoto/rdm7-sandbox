@@ -4,56 +4,42 @@
   "steps": [
     {
       "scene": "dashboard",
-      "voice": "The RDM-7 dashboard is built from tiles — RPM, speed, panels, bars, warnings, indicators. Each one is bound to a CAN signal. Let me walk through what you're looking at.",
-      "wait": 7500
+      "voice": "The default layout — every tile is bound to a CAN signal.",
+      "wait": 3000
     },
     {
-      "voice": "The thick bar across the top is the RPM bar. Yellow fill grows with engine speed. When you pass the redline, it flashes red to warn you.",
+      "voice": "RPM bar up top. Fills with engine speed, flashes red past redline.",
       "highlight": { "x": 0, "y": 0, "w": 800, "h": 50 },
-      "wait": 6500
+      "wait": 3800
     },
     {
-      "voice": "Turn indicators — left and right arrows beside the RPM number. They mirror your blinker CAN signal so you always know if a blinker's on, even without looking at the cluster.",
+      "voice": "Turn indicators next to the big RPM readout.",
       "highlight": { "x": 280, "y": 50, "w": 240, "h": 60 },
-      "wait": 6000
+      "wait": 3000
     },
     {
-      "voice": "The big RPM number sits under the bar. Easier to read at a glance than watching the bar fill.",
-      "highlight": { "x": 310, "y": 60, "w": 180, "h": 40 },
-      "wait": 4500
-    },
-    {
-      "voice": "The centre of the screen is the largest-format data — vehicle speed, big and bold, with the current gear directly below.",
+      "voice": "Vehicle speed centre, gear below it.",
       "highlight": { "x": 340, "y": 140, "w": 120, "h": 260 },
-      "wait": 5500
+      "wait": 3000
     },
     {
-      "voice": "Eight data panels flank the centre — four on the left, four on the right. Each shows a single signal. The default binding is ignition, MAP, throttle, coolant on the left; intake temp, lambda, oil temp, fuel trim on the right.",
+      "voice": "Eight data panels flank the centre — fully rebindable.",
       "highlight": { "x": 0, "y": 140, "w": 330, "h": 260 },
-      "wait": 9500
+      "wait": 3500
     },
     {
-      "voice": "You can rebind any panel to any signal — we'll cover that in the Widget Config tutorial. Tap the panel on the dash, pick a new signal, save. Thirty seconds.",
-      "highlight": { "x": 470, "y": 140, "w": 330, "h": 260 },
-      "wait": 7500
-    },
-    {
-      "voice": "Two horizontal bars at the bottom show gradual values as percentages — by default, coolant on the left (blue-to-red gradient) and throttle on the right.",
+      "voice": "Coolant and throttle bars along the bottom.",
       "highlight": { "x": 0, "y": 400, "w": 800, "h": 60 },
-      "wait": 6500
+      "wait": 3000
     },
     {
-      "voice": "Across the very top are eight warning slots — small circles that light up when a threshold is crossed. You configure threshold, colour, and label in the widget config. Silent until something matters.",
+      "voice": "Eight warning slots along the very top — silent until a threshold trips.",
       "highlight": { "x": 20, "y": 0, "w": 760, "h": 20 },
-      "wait": 7500
+      "wait": 3800
     },
     {
-      "voice": "Every widget responds in real time — under ten milliseconds from CAN frame to pixel. That's why you can run this as your primary gauge cluster in a track car.",
-      "wait": 5500
-    },
-    {
-      "voice": "Want to customise any of this? Tap a widget — that opens the config modal. We'll cover that next.",
-      "wait": 4500
+      "voice": "Tap any widget to edit it.",
+      "wait": 2200
     }
   ]
 }

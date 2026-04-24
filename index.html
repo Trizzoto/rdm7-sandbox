@@ -138,63 +138,60 @@
     .tour-picker select:hover  { background-color: var(--btn-bg-2); }
     .tour-picker select:focus  { outline: none; box-shadow: 0 0 0 2px rgba(204, 0, 0, 0.35); }
 
-    /* Layout philosophy: keep the whole experience above the fold on
-     * a standard 1080p viewport. Hero collapses to a single inline
-     * eyebrow + heading row beside the device on wide screens, stacks
-     * above on narrow ones. Padding tightened to claw back vertical
-     * space. */
+    /* Layout philosophy: dash-first. The whole device + transport bar
+     * must sit above the fold on boot on anything down to ~720 px tall.
+     * Hero text moved BELOW the device (bot-of-fold context) so the
+     * first thing a visitor sees is the product running, not prose. */
     main {
-      padding: 24px 28px 40px;
+      padding: 12px 28px 24px;
       max-width: 1100px; margin: 0 auto;
       display: grid;
       grid-template-columns: minmax(0, 1fr);
-      gap: 20px;
+      gap: 14px;
     }
     .hero {
-      max-width: 720px;
-      margin: 0;
+      max-width: 900px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .hero-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
     }
     .hero-eyebrow {
       font-family: 'JetBrains Mono', ui-monospace, monospace;
       font-size: 10px;
-      letter-spacing: 0.3em;
+      letter-spacing: 0.28em;
       text-transform: uppercase;
       color: var(--accent);
       font-weight: 700;
-      margin-bottom: 8px;
     }
     h1 {
-      margin: 0 0 8px;
-      font-size: clamp(1.5rem, 2.6vw, 2rem);
+      margin: 0;
+      font-size: 1.25rem;
       font-weight: 700;
-      letter-spacing: -0.015em;
-      line-height: 1.1;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
     }
     .hero-body {
-      max-width: 700px;
+      margin: 6px auto 0;
+      max-width: 720px;
       color: var(--text-dim);
       font-weight: 400;
-      font-size: 14px;
+      font-size: 13px;
       line-height: 1.5;
-    }
-    .hero-body code {
-      background: var(--btn-bg);
-      color: var(--btn-text);
-      padding: 1px 6px;
-      border-radius: 2px;
-      font-family: 'JetBrains Mono', ui-monospace, monospace;
-      font-size: 12px;
     }
     .hero-body strong { color: var(--text); font-weight: 600; }
 
-    /* When the viewport has plenty of vertical room (≥ 800 px tall),
-     * shrink the hero further so the device + transport bar comfortably
-     * sit above the fold on a 1366×768 laptop screen too. */
     @media (max-height: 820px) {
-      main { padding: 16px 28px 24px; gap: 14px; }
-      h1 { font-size: 1.4rem; margin-bottom: 6px; }
-      .hero-eyebrow { font-size: 9px; margin-bottom: 4px; }
-      .hero-body { font-size: 13px; line-height: 1.45; }
+      main { padding: 8px 28px 16px; gap: 10px; }
+      .hero-body { font-size: 12px; line-height: 1.4; }
+    }
+    @media (max-height: 720px) {
+      .hero-body { display: none; }
     }
 
     footer {
@@ -229,22 +226,23 @@
   </nav>
 
   <main>
-    <section class="hero">
-      <div class="hero-eyebrow">Guided Tour — First Boot</div>
-      <h1>Your dash, in the browser.</h1>
-      <p class="hero-body">
-        The RDM-7 firmware compiled to WebAssembly, driving the real first-run wizard.
-        Scripted clicks and captions walk the user through CAN setup, ECU selection, and
-        WiFi onboarding — no hardware required. Hit <strong>Play</strong> to start; scrub
-        with the dots to jump around.
-      </p>
-    </section>
-
     <dash-sandbox
       id="sb"
       script="/tours/first-boot.json"
       wasm="/rdm7-sandbox.wasm"
     ></dash-sandbox>
+
+    <section class="hero">
+      <div class="hero-row">
+        <span class="hero-eyebrow">Guided Tour</span>
+        <h1>Your dash, in the browser.</h1>
+      </div>
+      <p class="hero-body">
+        The real RDM-7 firmware compiled to WebAssembly. Pick a tour — narration and
+        scripted clicks walk you through the setup and every screen.
+        <strong>Play</strong> to start; dots to scrub.
+      </p>
+    </section>
   </main>
 
   <footer>

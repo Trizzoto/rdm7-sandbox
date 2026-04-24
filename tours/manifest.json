@@ -5,57 +5,57 @@
       "id": "first-boot",
       "title": "First-Boot Walkthrough",
       "file": "first-boot.json",
-      "description": "Full narrated walkthrough of the first-run wizard: CAN bus scan, ECU picker, and WiFi setup.",
-      "durationSec": 90
+      "description": "Narrated walkthrough of the first-run wizard: CAN scan, ECU pick, Wi-Fi join.",
+      "durationSec": 60
     },
     {
       "id": "quick",
       "title": "60-Second Quick Walkthrough",
       "file": "quick.json",
-      "description": "Condensed tour hitting all three wizard steps in under a minute. Ideal for marketing / landing pages.",
+      "description": "Marketing-grade condensed wizard tour — under a minute.",
       "durationSec": 30
     },
     {
       "id": "dashboard-reading",
       "title": "Reading the Dashboard",
       "file": "dashboard-reading.json",
-      "description": "Widget-by-widget overview of the default layout — RPM bar, speed, panels, bars, warnings, indicators. Teaches new users what they're looking at.",
-      "durationSec": 75
+      "description": "What every tile on the default layout does — RPM, speed, panels, bars, warnings.",
+      "durationSec": 50
     },
     {
       "id": "menu-and-settings",
       "title": "Menu & Device Settings",
       "file": "menu-and-settings.json",
-      "description": "Short tap reveals the Menu button, walks through the Setup Menu, then every section of Device Settings — CAN bus, Network, Display, Logging, Peak Hold, Testing, CAN diagnostics, and the footer actions.",
-      "durationSec": 120
+      "description": "Tap to reveal the Menu button, then through every section of Device Settings.",
+      "durationSec": 70
     },
     {
       "id": "display-settings",
       "title": "Display: Brightness & Night Mode",
       "file": "display-settings.json",
-      "description": "Deep-dive on the Display card — brightness slider, dimmer-switch binding, night mode, and rotation. Live controls work in the sandbox.",
-      "durationSec": 60
+      "description": "Brightness slider, dimmer binding, night mode, rotation — all working live.",
+      "durationSec": 45
     },
     {
       "id": "data-logging",
       "title": "Data Logging & Peak Hold",
       "file": "data-logging.json",
-      "description": "SD card session recording, sample rate selection, and the all-time peak/min table. Two tools for post-session analysis.",
-      "durationSec": 60
+      "description": "SD logging, sample rates, and the all-time peak/min signal table.",
+      "durationSec": 50
     },
     {
       "id": "widget-config",
       "title": "Editing a Widget",
       "file": "widget-config.json",
-      "description": "Tap any widget to open the config modal. Covers the Data / Presets / Alerts tabs, signal binding, CAN bus settings, and the save-or-cancel footer.",
-      "durationSec": 75
+      "description": "Tap to open the config modal — signal binding, CAN settings, save/cancel.",
+      "durationSec": 50
     },
     {
       "id": "wifi-setup",
       "title": "Wi-Fi & Connectivity",
       "file": "wifi-setup.json",
-      "description": "The full multi-SSID Wi-Fi manager — Client vs Hotspot modes, Start-on-Boot, hotspot password, and the networks list. Explains how to edit layouts from your phone at the track.",
-      "durationSec": 75
+      "description": "Client vs Hotspot, scan list, Start-on-Boot — the full multi-SSID manager.",
+      "durationSec": 50
     }
   ]
 }

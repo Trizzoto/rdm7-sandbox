@@ -5,60 +5,43 @@
     {
       "scene": "device_settings",
       "scrollSection": "logging",
-      "voice": "Data Logging and Peak Hold live side-by-side in Device Settings. Two tools that solve one problem — capturing what the engine did, so you can analyse it later.",
-      "wait": 7500
+      "voice": "Data Logging and Peak Hold — session capture tools.",
+      "wait": 3000
     },
     {
-      "voice": "Data Logging. Pop an SD card in the back of the dash, tap Start Logging, and every CAN signal gets written to a CSV file — timestamped, one row per sample.",
+      "voice": "Tap Start Logging with an SD card in — every signal written as CSV.",
       "scrollSection": "logging",
       "highlight": { "x": 30, "y": 80, "w": 240, "h": 100 },
-      "wait": 8500
+      "wait": 4200
     },
     {
-      "voice": "The rate dropdown sets how often a sample is written — one hertz for casual long-drives, up to two hundred hertz for dyno work. The Max setting writes every CAN frame as it arrives.",
+      "voice": "Rate dropdown — 1 hertz for long drives up to 200 for dyno work.",
       "scrollSection": "logging",
       "highlight": { "x": 30, "y": 80, "w": 240, "h": 100 },
-      "wait": 8500
+      "wait": 4000
     },
     {
-      "voice": "Logs live in slash-sdcard-slash-logs with a UTC timestamp. Pull the SD card, drop the CSV into Excel or MegaLogViewer, and you have a full session playback.",
-      "scrollSection": "logging",
-      "highlight": { "x": 30, "y": 80, "w": 240, "h": 100 },
-      "wait": 8000
-    },
-    {
-      "voice": "Even better — you can replay a log through the firmware's signal injector, driving a whole dashboard from recorded data. Perfect for testing a new layout at your desk.",
-      "scrollSection": "logging",
-      "highlight": { "x": 30, "y": 80, "w": 240, "h": 100 },
-      "wait": 7500
-    },
-    {
-      "voice": "Peak Hold is the zero-configuration version — every signal's all-time maximum and minimum is tracked automatically, stored in NVS, and survives power cycles. Tap View Peaks for the full table.",
+      "voice": "Peak Hold tracks every signal's all-time max and min. View Peaks opens the table.",
       "scrollSection": "peaks",
       "highlight": { "x": 270, "y": 80, "w": 240, "h": 100 },
-      "wait": 8000
+      "wait": 4500
     },
     {
       "scene": "peaks",
-      "voice": "Here's the table. Every registered signal in the active layout, with its current reading in teal, minimum in green, maximum in amber. Scrollable if the list is longer than the screen.",
-      "wait": 9000
+      "voice": "Current in teal, min in green, max in amber. Scrollable.",
+      "wait": 4000
     },
     {
-      "voice": "Reset All in the top-right clears every min and max back to the current value. Use it at the start of a new session so yesterday's numbers don't mask today's.",
+      "voice": "Reset All wipes min and max before a fresh session.",
       "highlight": { "x": 680, "y": 15, "w": 110, "h": 30 },
-      "wait": 7000
+      "wait": 3500
     },
     {
       "scene": "device_settings",
       "scrollSection": "peaks",
-      "voice": "Back in Device Settings — the Reset Peaks button here does the same thing without opening the table.",
+      "voice": "Back here, Reset Peaks does the same without opening the table.",
       "highlight": { "x": 270, "y": 80, "w": 240, "h": 100 },
-      "wait": 6500
-    },
-    {
-      "voice": "Together these two let you diagnose a problem after the fact — when did the lambda spike, what was the max oil temp last lap, did coolant ever hit the warning? The data's there either way.",
-      "scrollSection": "logging",
-      "wait": 7500
+      "wait": 3500
     }
   ]
 }

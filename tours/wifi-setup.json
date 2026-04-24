@@ -4,48 +4,37 @@
   "steps": [
     {
       "scene": "wifi_settings",
-      "voice": "This is the Wi-Fi Settings screen — the full multi-network manager. The first-boot wizard has a simplified version of this same screen, but everything here is available any time you need it.",
-      "wait": 8500
+      "voice": "Full Wi-Fi manager — same screen you can reach any time.",
+      "wait": 3000
     },
     {
-      "voice": "Status at the top-right shows what mode you're in and where you're connected. Green means connected, amber means scanning, red means something's wrong.",
+      "voice": "Status top-right: green connected, amber scanning, red trouble.",
       "highlight": { "x": 500, "y": 15, "w": 280, "h": 34 },
-      "wait": 7000
+      "wait": 3500
     },
     {
-      "voice": "The Controls card on the left. Mode decides what role the dash plays — Off, WiFi Client, or Hotspot. Client mode joins an existing Wi-Fi network; Hotspot mode lets your phone or laptop connect directly to the dash itself.",
-      "highlight": { "x": 20, "y": 60, "w": 350, "h": 210 },
-      "wait": 11000
+      "voice": "Mode — Off, Client (join a network), or Hotspot (dash broadcasts its own).",
+      "highlight": { "x": 20, "y": 60, "w": 350, "h": 110 },
+      "wait": 4500
     },
     {
-      "voice": "Start on Boot decides what mode to come up in next power-on. Set it to Client if you're always at home, or Hotspot if you're out at a track.",
+      "voice": "Start on Boot decides what mode comes up next power-on.",
       "highlight": { "x": 20, "y": 140, "w": 350, "h": 60 },
-      "wait": 7500
+      "wait": 3500
     },
     {
-      "voice": "Hotspot Password lets you set a WPA2 key for the dash's own network. Minimum eight characters. Tap Set to save.",
-      "highlight": { "x": 20, "y": 205, "w": 350, "h": 100 },
-      "wait": 7000
+      "voice": "Hotspot Password — minimum eight chars. Useful at the track.",
+      "highlight": { "x": 20, "y": 205, "w": 350, "h": 60 },
+      "wait": 3800
     },
     {
-      "voice": "Available Networks on the right. Tap Scan to refresh the list, then tap any network to connect. Lock icon means password-protected. Signal strength on the right tells you if it's worth joining.",
+      "voice": "Scan refreshes the list. Tap a network to connect.",
       "highlight": { "x": 400, "y": 60, "w": 380, "h": 380 },
-      "wait": 9500
+      "wait": 4000
     },
     {
-      "voice": "Once you're connected, pop back to Device Settings — Network section shows your IP address. That's the URL you type into any laptop or phone to open the web editor.",
-      "highlight": { "x": 400, "y": 60, "w": 380, "h": 50 },
-      "wait": 7500
-    },
-    {
-      "voice": "For out-at-the-track situations where there's no shop Wi-Fi, switch Mode to Hotspot. The dash broadcasts its own network, you join from your phone, and you're editing the dash over the web UI in seconds.",
-      "highlight": { "x": 20, "y": 60, "w": 350, "h": 210 },
-      "wait": 10000
-    },
-    {
-      "voice": "Tap Back to return to Device Settings. Your Wi-Fi choice persists in NVS, so the next power-up rejoins automatically.",
-      "highlight": { "x": 20, "y": 20, "w": 80, "h": 30 },
-      "wait": 6500
+      "voice": "Connected IP appears under Network in Device Settings — that's your web editor URL.",
+      "wait": 4200
     }
   ]
 }
