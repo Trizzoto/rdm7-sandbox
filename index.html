@@ -421,7 +421,11 @@
       select.addEventListener('change', async () => {
         await waitForReady();
         await sb.setScript(select.value);
-        // New tour = reset to the idle intro state.
+        // New tour = reset to the idle intro state. Park the dash on
+        // the dashboard scene so it isn't mid-wizard when the visitor
+        // hasn't pressed Play yet.
+        sb.runner.pause();
+        sb.mod?._sandbox_set_scene?.(6); // SCENE_DASHBOARD
         hero.classList.remove('playing');
         heroTitle.textContent = select.selectedOptions[0].dataset.title;
         captionEl.textContent = 'Press Play to begin.';

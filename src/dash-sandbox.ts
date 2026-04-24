@@ -565,6 +565,11 @@ export class DashSandboxElement extends HTMLElement {
     } else if (this.hasAttribute('controlled')) {
       /* Host drives play/pause externally; the in-canvas startup
        * overlay and transport bar are hidden via CSS. */
+
+      /* Park the WASM on the dashboard so the wizard's scan animation
+       * doesn't auto-play in the visitor's face. The first Start Tour
+       * click resets to step1 anyway. */
+      this.mod?._sandbox_set_scene?.(SCENE_MAP.dashboard);
     } else {
       this.showStartup(this.script);
     }
