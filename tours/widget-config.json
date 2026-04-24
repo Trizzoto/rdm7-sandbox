@@ -5,7 +5,7 @@
     {
       "scene": "dashboard",
       "voice": "Tap any widget to edit its signal, label, colours or thresholds.",
-      "highlight": { "x": 0, "y": 120, "w": 330, "h": 130 },
+      "highlight": { "x": 170, "y": 270, "w": 165, "h": 100 },
       "wait": 3800
     },
     {

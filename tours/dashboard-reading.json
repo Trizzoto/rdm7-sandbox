@@ -13,28 +13,28 @@
       "wait": 3800
     },
     {
-      "voice": "Turn indicators next to the big RPM readout.",
-      "highlight": { "x": 280, "y": 50, "w": 240, "h": 60 },
+      "voice": "Turn indicators flank the big RPM number.",
+      "highlight": { "x": 280, "y": 85, "w": 240, "h": 50 },
       "wait": 3000
     },
     {
       "voice": "Vehicle speed centre, gear below it.",
-      "highlight": { "x": 340, "y": 140, "w": 120, "h": 260 },
+      "highlight": { "x": 340, "y": 285, "w": 120, "h": 180 },
       "wait": 3000
     },
     {
       "voice": "Eight data panels flank the centre — fully rebindable.",
-      "highlight": { "x": 0, "y": 140, "w": 330, "h": 260 },
+      "highlight": { "x": 5, "y": 165, "w": 330, "h": 210 },
       "wait": 3500
     },
     {
-      "voice": "Coolant and throttle bars along the bottom.",
-      "highlight": { "x": 0, "y": 400, "w": 800, "h": 60 },
+      "voice": "Coolant bar on the left, throttle on the right — both along the bottom.",
+      "highlight": { "x": 10, "y": 425, "w": 780, "h": 40 },
       "wait": 3000
     },
     {
-      "voice": "Eight warning slots along the very top — silent until a threshold trips.",
-      "highlight": { "x": 20, "y": 0, "w": 760, "h": 20 },
+      "voice": "Eight warning slots across the top — silent until a threshold trips.",
+      "highlight": { "x": 20, "y": 80, "w": 760, "h": 25 },
       "wait": 3800
     },
     {
