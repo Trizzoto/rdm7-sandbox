@@ -1,0 +1,117 @@
+{
+  "id": "menu-and-settings",
+  "title": "Menu & Device Settings",
+  "steps": [
+    {
+      "scene": "dashboard",
+      "voice": "This is the main dashboard — RPM across the top, speed in the centre, eight data panels on the sides. Everything else lives one tap away.",
+      "wait": 5500
+    },
+    {
+      "voice": "A short tap anywhere on the screen reveals the Menu button in the top-right corner for six seconds.",
+      "highlight": { "x": 200, "y": 100, "w": 400, "h": 280 },
+      "click": [400, 240],
+      "delay": 800
+    },
+    {
+      "scene": "dashboard_menu",
+      "voice": "There it is — the blue pill at the top right. Tap it to open the menu.",
+      "highlight": { "x": 680, "y": 8, "w": 112, "h": 44 },
+      "click": [738, 30],
+      "delay": 1400
+    },
+    {
+      "scene": "setup_menu",
+      "voice": "This is the Setup Menu — three things live here.",
+      "wait": 2500
+    },
+    {
+      "voice": "Layout: pick which dashboard is active. You can save multiple — a Street layout, a Track layout, a diagnostics view — and swap between them in one tap.",
+      "highlight": { "x": 244, "y": 112, "w": 312, "h": 100 },
+      "wait": 6500
+    },
+    {
+      "voice": "Splash: change the boot-up logo. Upload your own through the web editor later.",
+      "highlight": { "x": 244, "y": 220, "w": 312, "h": 100 },
+      "wait": 4500
+    },
+    {
+      "voice": "And Device Settings — where everything else is configured. Let's go in.",
+      "highlight": { "x": 244, "y": 330, "w": 312, "h": 40 },
+      "click": [400, 348],
+      "delay": 1400
+    },
+    {
+      "scene": "device_settings",
+      "voice": "Device Settings. Eight sections, scrollable. I'll walk through each one.",
+      "scrollSection": "top",
+      "wait": 3500
+    },
+    {
+      "voice": "CAN BUS — pick the bitrate your ECU broadcasts at, and which ECU preset to use. This is what gets your signals mapping correctly.",
+      "scrollSection": "top",
+      "highlight": { "x": 30, "y": 80, "w": 370, "h": 160 },
+      "wait": 6500
+    },
+    {
+      "voice": "Device Info — your dash's serial number, firmware version, and MAC address. Handy when contacting support.",
+      "scrollSection": "top",
+      "highlight": { "x": 400, "y": 80, "w": 370, "h": 160 },
+      "wait": 5500
+    },
+    {
+      "scrollSection": "network",
+      "voice": "Scrolling down. Network & Updates — join Wi-Fi, start the hotspot, show a QR for your phone to connect, or check for firmware updates over the air.",
+      "highlight": { "x": 30, "y": 80, "w": 370, "h": 240 },
+      "wait": 7500
+    },
+    {
+      "scrollSection": "display",
+      "voice": "Display — live brightness slider, a dimmer-switch binding so your headlights can dim the dash automatically, night-mode toggle, and screen rotation. The slider actually dims the canvas in the sandbox — try it after this tour.",
+      "highlight": { "x": 400, "y": 80, "w": 370, "h": 240 },
+      "wait": 8500
+    },
+    {
+      "scrollSection": "logging",
+      "voice": "Data Logging — start or stop a log to the SD card and pick the sample rate, one hertz up to two hundred.",
+      "highlight": { "x": 30, "y": 80, "w": 240, "h": 100 },
+      "wait": 5500
+    },
+    {
+      "scrollSection": "peaks",
+      "voice": "Peak Hold — view the all-time maximum and minimum of every signal. Useful for after a dyno pull or a lap. Reset Peaks wipes the list.",
+      "highlight": { "x": 270, "y": 80, "w": 240, "h": 100 },
+      "wait": 5500
+    },
+    {
+      "scrollSection": "logging",
+      "voice": "Testing — flips the signal simulator so you can see the dashboard animated without real CAN traffic. Perfect for previewing a new layout on the bench.",
+      "highlight": { "x": 510, "y": 80, "w": 240, "h": 100 },
+      "wait": 5500
+    },
+    {
+      "scrollSection": "can_diag",
+      "voice": "CAN Bus diagnostics — live health dot, RX frame rate, and an expandable details grid with error counters. The Run Bus Scan button sweeps the four common bitrates looking for traffic, same as first-boot.",
+      "highlight": { "x": 30, "y": 80, "w": 740, "h": 170 },
+      "wait": 8000
+    },
+    {
+      "scrollSection": "footer",
+      "voice": "Finally — System Diagnostics opens a read-only health dashboard. Run Setup Wizard reruns the first-boot flow. Reset to Default factory-wipes everything — your layouts, your Wi-Fi, the lot.",
+      "highlight": { "x": 30, "y": 100, "w": 740, "h": 130 },
+      "wait": 8500
+    },
+    {
+      "voice": "Close returns to the dashboard. Everything you changed persists in NVS, so the next power-up picks up where you left off.",
+      "scrollSection": "top",
+      "highlight": { "x": 700, "y": 28, "w": 80, "h": 36 },
+      "click": [740, 42],
+      "delay": 1500
+    },
+    {
+      "scene": "dashboard",
+      "voice": "And we're home. That's Device Settings.",
+      "wait": 3000
+    }
+  ]
+}

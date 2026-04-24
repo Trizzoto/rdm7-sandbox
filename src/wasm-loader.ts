@@ -12,6 +12,16 @@ export interface SandboxModule {
    *  (Back button) so the LVGL render stays in sync with the audio. */
   _sandbox_set_scene(scene: number): void;
 
+  /** Scroll the Device Settings scrollable content to a named section
+   *  (see DS_SECTION_* in device_settings_sandbox.c). No-op when the
+   *  settings screen isn't currently active. */
+  _sandbox_device_settings_scroll?(sectionId: number): void;
+
+  /** Open / close the widget config modal over the dashboard. Ignored
+   *  when the dashboard isn't the active screen. */
+  _sandbox_open_widget_config?(): void;
+  _sandbox_close_widget_config?(): void;
+
   /** Emscripten-provided call helpers. */
   ccall: (
     fn: string,

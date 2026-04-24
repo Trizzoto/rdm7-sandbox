@@ -18,7 +18,11 @@ export type WizardScene =
   | 'step3'            /* Connect Your Device              */
   | 'wifi_picker'      /* WiFi scan list                   */
   | 'wifi_connected'   /* WiFi list with "Connected" label */
-  | 'dashboard';       /* Default layout running with mock driving data */
+  | 'dashboard'        /* Default layout running with mock driving data */
+  | 'dashboard_menu'   /* Dashboard + floating Menu button revealed */
+  | 'setup_menu'       /* Setup Menu modal (Layout / Splash / Device Settings) */
+  | 'device_settings'  /* Device Settings screen */
+  | 'widget_config';   /* Widget config modal over dashboard */
 
 export interface TourStep {
   /** Spoken line. Rendered as a caption underneath; also fed to TTS. */
@@ -45,7 +49,22 @@ export interface TourStep {
 
   /** Free-form caption shown below the voice line — useful for hints. */
   caption?: string;
+
+  /** Scroll the Device Settings content column to a named section so
+   *  the tour can highlight content below the initial fold. Only
+   *  meaningful when the current scene is `device_settings`. See the
+   *  `DS_SECTION_*` enum in device_settings_sandbox.c for valid ids. */
+  scrollSection?: ScrollSection;
 }
+
+export type ScrollSection =
+  | 'top'          /* CAN BUS + DEVICE INFO row (id 0)              */
+  | 'network'      /* NETWORK & UPDATES / DISPLAY row (id 1)        */
+  | 'display'      /* Same as network, different highlight target (id 5) */
+  | 'logging'      /* DATA LOGGING / PEAK HOLD / TESTING (id 2)     */
+  | 'peaks'        /* Same as logging, middle column (id 6)         */
+  | 'can_diag'     /* CAN BUS diagnostics (id 3)                    */
+  | 'footer';      /* System Diag / Setup Wizard / Reset (id 4)     */
 
 export interface TourScript {
   id: string;

@@ -71,6 +71,9 @@ set(SANDBOX_SOURCES
     src/c/hal_init.c
     src/c/pointer_injector.c
     src/c/wizard_sandbox.c
+    src/c/menu_sandbox.c
+    src/c/device_settings_sandbox.c
+    src/c/widget_config_sandbox.c
     src/c/default_layout_mock.c
 )
 
@@ -120,6 +123,6 @@ target_link_options(rdm7-sandbox PRIVATE
     -sMODULARIZE=1
     -sEXPORT_NAME='RDM7Sandbox'
     -sASSERTIONS=1
-    "SHELL:-s EXPORTED_FUNCTIONS=['_main','_sandbox_set_pointer','_sandbox_step','_sandbox_set_scene','_sandbox_inject_signal','_malloc','_free']"
+    "SHELL:-s EXPORTED_FUNCTIONS=['_main','_sandbox_set_pointer','_sandbox_step','_sandbox_set_scene','_sandbox_inject_signal','_sandbox_device_settings_scroll','_sandbox_open_widget_config','_sandbox_close_widget_config','_malloc','_free']"
     "SHELL:-s EXPORTED_RUNTIME_METHODS=['ccall','cwrap','FS','HEAPU8']"
 )

@@ -6,7 +6,7 @@
       "title": "First-Boot Walkthrough",
       "file": "first-boot.json",
       "description": "Full narrated walkthrough of the first-run wizard: CAN bus scan, ECU picker, and WiFi setup.",
-      "durationSec": 45
+      "durationSec": 90
     },
     {
       "id": "quick",
@@ -14,6 +14,41 @@
       "file": "quick.json",
       "description": "Condensed tour hitting all three wizard steps in under a minute. Ideal for marketing / landing pages.",
       "durationSec": 30
+    },
+    {
+      "id": "dashboard-reading",
+      "title": "Reading the Dashboard",
+      "file": "dashboard-reading.json",
+      "description": "Widget-by-widget overview of the default layout — RPM bar, speed, panels, bars, warnings, indicators. Teaches new users what they're looking at.",
+      "durationSec": 75
+    },
+    {
+      "id": "menu-and-settings",
+      "title": "Menu & Device Settings",
+      "file": "menu-and-settings.json",
+      "description": "Short tap reveals the Menu button, walks through the Setup Menu, then every section of Device Settings — CAN bus, Network, Display, Logging, Peak Hold, Testing, CAN diagnostics, and the footer actions.",
+      "durationSec": 120
+    },
+    {
+      "id": "display-settings",
+      "title": "Display: Brightness & Night Mode",
+      "file": "display-settings.json",
+      "description": "Deep-dive on the Display card — brightness slider, dimmer-switch binding, night mode, and rotation. Live controls work in the sandbox.",
+      "durationSec": 60
+    },
+    {
+      "id": "data-logging",
+      "title": "Data Logging & Peak Hold",
+      "file": "data-logging.json",
+      "description": "SD card session recording, sample rate selection, and the all-time peak/min table. Two tools for post-session analysis.",
+      "durationSec": 60
+    },
+    {
+      "id": "widget-config",
+      "title": "Editing a Widget",
+      "file": "widget-config.json",
+      "description": "Tap any widget to open the config modal. Covers the Data / Presets / Alerts tabs, signal binding, CAN bus settings, and the save-or-cancel footer.",
+      "durationSec": 75
     }
   ]
 }

@@ -1,0 +1,53 @@
+{
+  "id": "data-logging",
+  "title": "Data Logging & Peak Hold",
+  "steps": [
+    {
+      "scene": "device_settings",
+      "scrollSection": "logging",
+      "voice": "Data Logging and Peak Hold live side-by-side in Device Settings. Two tools that solve one problem — capturing what the engine did, so you can analyse it later.",
+      "wait": 7500
+    },
+    {
+      "voice": "Data Logging. Pop an SD card in the back of the dash, tap Start Logging, and every CAN signal gets written to a CSV file — timestamped, one row per sample.",
+      "scrollSection": "logging",
+      "highlight": { "x": 30, "y": 80, "w": 240, "h": 100 },
+      "wait": 8500
+    },
+    {
+      "voice": "The rate dropdown sets how often a sample is written — one hertz for casual long-drives, up to two hundred hertz for dyno work. The Max setting writes every CAN frame as it arrives.",
+      "scrollSection": "logging",
+      "highlight": { "x": 30, "y": 80, "w": 240, "h": 100 },
+      "wait": 8500
+    },
+    {
+      "voice": "Logs live in slash-sdcard-slash-logs with a UTC timestamp. Pull the SD card, drop the CSV into Excel or MegaLogViewer, and you have a full session playback.",
+      "scrollSection": "logging",
+      "highlight": { "x": 30, "y": 80, "w": 240, "h": 100 },
+      "wait": 8000
+    },
+    {
+      "voice": "Even better — you can replay a log through the firmware's signal injector, driving a whole dashboard from recorded data. Perfect for testing a new layout at your desk.",
+      "scrollSection": "logging",
+      "highlight": { "x": 30, "y": 80, "w": 240, "h": 100 },
+      "wait": 7500
+    },
+    {
+      "voice": "Peak Hold is the zero-configuration version — every signal's all-time maximum and minimum is tracked automatically, stored in NVS, and survives power cycles. Tap View Peaks for the full table.",
+      "scrollSection": "peaks",
+      "highlight": { "x": 270, "y": 80, "w": 240, "h": 100 },
+      "wait": 9000
+    },
+    {
+      "voice": "Reset Peaks wipes the record. Useful before a fresh session — otherwise yesterday's pull masks today's numbers.",
+      "scrollSection": "peaks",
+      "highlight": { "x": 270, "y": 80, "w": 240, "h": 100 },
+      "wait": 6500
+    },
+    {
+      "voice": "Together these two let you diagnose a problem after the fact — when did the lambda spike, what was the max oil temp last lap, did coolant ever hit the warning? The data's there either way.",
+      "scrollSection": "logging",
+      "wait": 7500
+    }
+  ]
+}

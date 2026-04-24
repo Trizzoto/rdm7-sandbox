@@ -1,0 +1,47 @@
+{
+  "id": "display-settings",
+  "title": "Display: Brightness, Night Mode, Rotation",
+  "steps": [
+    {
+      "scene": "device_settings",
+      "scrollSection": "display",
+      "voice": "The Display card has four controls — brightness, dimmer-switch binding, night mode, and screen rotation. Three of these actually work here in the sandbox, so play with them after the tour.",
+      "wait": 8000
+    },
+    {
+      "voice": "Brightness slider — five to one hundred percent. In the real device this drives the backlight LED via PWM. In the sandbox it dims the entire canvas so you can see the effect.",
+      "scrollSection": "display",
+      "highlight": { "x": 405, "y": 100, "w": 370, "h": 50 },
+      "wait": 8000
+    },
+    {
+      "voice": "Dimmer Switch Config lets you bind brightness to a CAN signal — so your headlight switch automatically drops the dash to a comfortable level at night. You set a signal, a threshold, and a dim level. Momentary or persistent, your choice.",
+      "scrollSection": "display",
+      "highlight": { "x": 405, "y": 155, "w": 370, "h": 40 },
+      "wait": 9500
+    },
+    {
+      "voice": "Night Mode is the manual version. Tap it to toggle — the dash shifts to a dimmer colour palette and every widget with a Night Override applies its night-time colours.",
+      "scrollSection": "display",
+      "highlight": { "x": 405, "y": 195, "w": 370, "h": 40 },
+      "wait": 8000
+    },
+    {
+      "voice": "You configure night colours per widget — same label, different palette. So your coolant panel can go from bright green during the day to dim red at night, without losing readability.",
+      "scrollSection": "display",
+      "highlight": { "x": 405, "y": 195, "w": 370, "h": 40 },
+      "wait": 7500
+    },
+    {
+      "voice": "Rotation cycles zero, ninety, one-eighty, two-seventy. Useful if you've mounted the dash sideways or upside-down in an unusual dash pod.",
+      "scrollSection": "display",
+      "highlight": { "x": 405, "y": 235, "w": 370, "h": 40 },
+      "wait": 7500
+    },
+    {
+      "voice": "All four settings persist to NVS, so they survive power cycles. The dash boots up exactly how you left it.",
+      "scrollSection": "display",
+      "wait": 4500
+    }
+  ]
+}

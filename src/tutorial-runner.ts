@@ -6,7 +6,7 @@
  * wrappers on top of it.
  */
 
-import type { TourScript, TourStep, WizardScene } from './tour-types.js';
+import type { TourScript, TourStep, WizardScene, ScrollSection } from './tour-types.js';
 import type { PointerInjector } from './pointer-injector.js';
 import type { HighlightOverlay } from './highlight-overlay.js';
 import type { Voice } from './voiceover.js';
@@ -16,13 +16,17 @@ import type { SandboxModule } from './wasm-loader.js';
  *  Changing these requires matching changes in C; integer-keyed so the
  *  C side doesn't need a string parser. */
 export const SCENE_MAP: Record<WizardScene, number> = {
-  step1:           0,
-  step1_done:      1,
-  step2:           2,
-  step3:           3,
-  wifi_picker:     4,
-  wifi_connected:  5,
-  dashboard:       6,
+  step1:            0,
+  step1_done:       1,
+  step2:            2,
+  step3:            3,
+  wifi_picker:      4,
+  wifi_connected:   5,
+  dashboard:        6,
+  dashboard_menu:   7,
+  setup_menu:       8,
+  device_settings:  9,
+  widget_config:   10,
 };
 
 export interface TutorialEvents {
@@ -122,7 +126,25 @@ export class TutorialRunner {
     }
   }
 
+  /** Map a tour-script scroll target onto the DS_SECTION_* id the
+   *  C layer exposes. Kept here (not in the C header) so tour
+   *  authors get autocomplete over meaningful names. */
+  private scrollSectionId(s: ScrollSection): number {
+    switch (s) {
+      case 'top':      return 0;
+      case 'network':  return 1;
+      case 'logging':  return 2;
+      case 'can_diag': return 3;
+      case 'footer':   return 4;
+      case 'display':  return 5;
+      case 'peaks':    return 6;
+    }
+  }
+
   private async runStep(step: TourStep, token: number): Promise<void> {
+    if (step.scrollSection && this.mod._sandbox_device_settings_scroll) {
+      this.mod._sandbox_device_settings_scroll(this.scrollSectionId(step.scrollSection));
+    }
     if (step.highlight) this.overlay.show(step.highlight);
     else this.overlay.hide();
 

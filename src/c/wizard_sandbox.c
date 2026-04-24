@@ -144,13 +144,29 @@ static double   s_dash_started_ms = 0;
 /* ── Scene identifiers exported to JS ─────────────────────────────────
  * Tour scripts use these to rewind the LVGL state when the user taps
  * Back. Keep in sync with src/tutorial-runner.ts SCENE_MAP. */
-#define SCENE_STEP1          0  /* CAN scan running (fresh start)    */
-#define SCENE_STEP1_DONE     1  /* CAN scan complete, Apply visible  */
-#define SCENE_STEP2          2  /* ECU picker overlay                */
-#define SCENE_STEP3          3  /* Connect Your Device               */
-#define SCENE_WIFI_PICKER    4  /* WiFi scan list overlay            */
-#define SCENE_WIFI_CONNECTED 5  /* WiFi list with "Connected" status */
-#define SCENE_DASHBOARD      6  /* Default layout "driving" with mock data */
+#define SCENE_STEP1           0  /* CAN scan running (fresh start)    */
+#define SCENE_STEP1_DONE      1  /* CAN scan complete, Apply visible  */
+#define SCENE_STEP2           2  /* ECU picker overlay                */
+#define SCENE_STEP3           3  /* Connect Your Device               */
+#define SCENE_WIFI_PICKER     4  /* WiFi scan list overlay            */
+#define SCENE_WIFI_CONNECTED  5  /* WiFi list with "Connected" status */
+#define SCENE_DASHBOARD       6  /* Default layout "driving" with mock data */
+#define SCENE_DASHBOARD_MENU  7  /* Dashboard + Menu button revealed  */
+#define SCENE_SETUP_MENU      8  /* Setup Menu modal (Layout/Splash)  */
+#define SCENE_DEVICE_SETTINGS 9  /* Device Settings screen            */
+#define SCENE_WIDGET_CONFIG  10  /* Widget config modal over dashboard */
+
+/* External hooks (src/c/menu_sandbox.c, src/c/device_settings_sandbox.c,
+ * src/c/widget_config_sandbox.c). */
+extern void menu_sandbox_attach_dashboard(lv_obj_t *dash_screen);
+extern void menu_sandbox_show_menu_button(void);
+extern void menu_sandbox_hide_menu_button(void);
+extern void menu_sandbox_open_setup_menu(void);
+extern void menu_sandbox_close_setup_menu(void);
+extern void device_settings_sandbox_open(lv_obj_t *return_screen);
+extern void device_settings_sandbox_close(void);
+extern void widget_config_sandbox_open(lv_obj_t *return_screen);
+extern void widget_config_sandbox_close(void);
 
 /* ── Forward decls ───────────────────────────────────────────────────── */
 static void _show_step1(void);
@@ -1105,6 +1121,20 @@ static void _ensure_dashboard_loaded(void) {
     s_dash_started_ms = emscripten_get_now();
     if (s_dash_timer) lv_timer_del(s_dash_timer);
     s_dash_timer = lv_timer_create(_dash_tick, 60, NULL);
+
+    /* Hand the freshly-built dashboard over to menu_sandbox so the
+     * tap-to-reveal Menu button and its auto-hide timer attach to the
+     * right screen. Idempotent — safe to call whenever the dashboard
+     * is rebuilt. */
+    menu_sandbox_attach_dashboard(s_dash_screen);
+}
+
+/* Expose the dashboard screen to sibling modules (menu_sandbox,
+ * device_settings_sandbox) without making them depend on wizard state.
+ * Lazy-init so the first caller doesn't have to pre-load the wizard. */
+lv_obj_t *wizard_sandbox_get_dashboard_screen(void) {
+    _ensure_dashboard_loaded();
+    return s_dash_screen;
 }
 
 /* SCENE_DASHBOARD just hides the wizard overlay — the dashboard is
@@ -1195,10 +1225,42 @@ static void _rebuild_base_overlay(void) {
  * button). Scenes are integer codes — see the #defines above. */
 EMSCRIPTEN_KEEPALIVE
 void sandbox_set_scene(int scene) {
-    /* Dashboard scene is the "no overlay" state — short-circuit before
-     * we rebuild a wizard chrome we'd just delete a moment later. */
-    if (scene == SCENE_DASHBOARD) {
-        _show_dashboard();
+    /* Post-wizard scenes live on separate screens (dashboard, setup
+     * menu, device settings). Close any wizard chrome AND tear down
+     * any Device Settings / Setup Menu screens that were up from a
+     * previous scene jump before switching. */
+    if (scene == SCENE_DASHBOARD ||
+        scene == SCENE_DASHBOARD_MENU ||
+        scene == SCENE_SETUP_MENU ||
+        scene == SCENE_DEVICE_SETTINGS ||
+        scene == SCENE_WIDGET_CONFIG) {
+        /* Drop wizard overlay if any. */
+        if (s_overlay && lv_obj_is_valid(s_overlay)) {
+            lv_obj_del(s_overlay);
+            s_overlay = s_card = s_step1 = s_step3 = NULL;
+        }
+        if (s_ecu_overlay && lv_obj_is_valid(s_ecu_overlay))   lv_obj_del(s_ecu_overlay);
+        if (s_wifi_overlay && lv_obj_is_valid(s_wifi_overlay)) lv_obj_del(s_wifi_overlay);
+        s_ecu_overlay = s_ecu_make_dd = s_ecu_ver_dd = s_ecu_apply = NULL;
+        s_wifi_overlay = s_wifi_status = s_wifi_list = NULL;
+        _ensure_dashboard_loaded();
+        lv_scr_load(s_dash_screen);
+        /* Force dashboard to be the active screen before we layer
+         * setup menu / device settings screens on top. */
+        menu_sandbox_close_setup_menu();
+        device_settings_sandbox_close();
+        widget_config_sandbox_close();
+        menu_sandbox_hide_menu_button();
+
+        if (scene == SCENE_DASHBOARD_MENU) {
+            menu_sandbox_show_menu_button();
+        } else if (scene == SCENE_SETUP_MENU) {
+            menu_sandbox_open_setup_menu();
+        } else if (scene == SCENE_DEVICE_SETTINGS) {
+            device_settings_sandbox_open(s_dash_screen);
+        } else if (scene == SCENE_WIDGET_CONFIG) {
+            widget_config_sandbox_open(s_dash_screen);
+        }
         return;
     }
 
