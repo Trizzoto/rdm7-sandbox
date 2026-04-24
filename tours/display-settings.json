@@ -1,40 +1,34 @@
 {
   "id": "display-settings",
-  "title": "Display: Brightness & Night Mode",
+  "title": "Display: Brightness & Dimmer",
   "steps": [
     {
       "scene": "device_settings",
       "scrollSection": "display",
-      "voice": "The Display card — four controls.",
-      "wait": 2800
+      "voice": "The Display card — brightness control and dimmer binding.",
+      "wait": 3000
     },
     {
-      "voice": "Brightness — live slider, 5 to 100 percent. Dims the canvas in the sandbox too.",
+      "voice": "Brightness slider, 5 to 100 percent. Drives the backlight on device; dims the canvas here in the sandbox.",
       "scrollSection": "display",
       "highlight": { "x": 405, "y": 100, "w": 370, "h": 50 },
-      "wait": 4500
+      "wait": 5000
     },
     {
       "voice": "Dimmer Switch Config — bind brightness to a CAN signal like your headlights.",
       "scrollSection": "display",
       "highlight": { "x": 405, "y": 155, "w": 370, "h": 40 },
-      "wait": 4000
+      "wait": 4200
     },
     {
-      "voice": "Night Mode — toggles a dimmer colour palette across every widget.",
       "scrollSection": "display",
-      "highlight": { "x": 405, "y": 195, "w": 370, "h": 40 },
-      "wait": 4000
+      "voice": "Pick a signal, set a threshold, and the dash drops to your chosen dim level automatically.",
+      "highlight": { "x": 405, "y": 155, "w": 370, "h": 40 },
+      "wait": 4500
     },
     {
-      "voice": "Rotation cycles zero, ninety, one-eighty, two-seventy.",
-      "scrollSection": "display",
-      "highlight": { "x": 405, "y": 235, "w": 370, "h": 40 },
-      "wait": 3500
-    },
-    {
-      "voice": "All persist in NVS — boot picks up where you left off.",
-      "wait": 2500
+      "voice": "Brightness setting persists in NVS — survives power cycles.",
+      "wait": 2800
     }
   ]
 }

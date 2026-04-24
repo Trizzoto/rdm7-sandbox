@@ -531,11 +531,12 @@ export class DashSandboxElement extends HTMLElement {
 
     const pointer = new PointerInjector(this.mod);
     this.runner = new TutorialRunner(pointer, this.overlay, this.voice, this.mod, {
-      onCaption: (c) => {
-        this.setCaption(c);
-        this.dispatchEvent(new CustomEvent('caption', { detail: c }));
-      },
-      onStep: (i, s) => {
+      /* Caption path and step path both land here. setCaption()
+       * forwards to host pages via a 'caption' event, so the
+       * event-dispatch is centralised there rather than doubled
+       * up at each runner callback. */
+      onCaption: (c) => this.setCaption(c),
+      onStep:    (i, s) => {
         this.handleStepChange(i, s);
         this.dispatchEvent(new CustomEvent('step', { detail: { index: i, step: s } }));
       },
@@ -687,6 +688,10 @@ export class DashSandboxElement extends HTMLElement {
       this.captionEl.textContent = text;
       requestAnimationFrame(() => this.captionEl.classList.remove('swap'));
     });
+    /* Mirror to host-page captions (controlled mode). Single source
+     * of truth so step-voice AND explicit step-caption paths reach
+     * external listeners identically. */
+    this.dispatchEvent(new CustomEvent('caption', { detail: text }));
   }
 
   private buildTimeline(script: TourScript) {

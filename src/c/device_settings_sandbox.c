@@ -12,8 +12,6 @@
  * Interactions that actually do something in the sandbox:
  *   - Brightness slider → live canvas-level opacity via CSS filter
  *     (caller exposes sandbox_set_display_brightness from JS)
- *   - Rotation (via direct LVGL API; see _rotation_btn_cb)
- *   - Night mode toggle (UI-only label flip)
  *   - Sim toggle (UI-only — the dash is already mock-driven)
  *   - Data logger start/stop + rate dropdown (UI-only)
  *   - Bitrate / ECU dropdowns (UI-only)
@@ -98,8 +96,6 @@ static lv_obj_t *s_content_col     = NULL;
 
 /* Live labels — we update these in response to events / timers */
 static lv_obj_t *s_brightness_val_label = NULL;
-static lv_obj_t *s_rotation_btn_label   = NULL;
-static lv_obj_t *s_night_btn_label      = NULL;
 static lv_obj_t *s_sim_btn_label        = NULL;
 static lv_obj_t *s_log_btn_label        = NULL;
 static lv_obj_t *s_log_status_label     = NULL;
@@ -115,8 +111,6 @@ static lv_obj_t *s_can_detail_labels[6] = {NULL};
 
 /* State tracked in memory (not persisted — refreshes on reopen) */
 static uint8_t s_brightness_pct  = 80;
-static uint8_t s_rotation_deg    = 0;
-static bool    s_night_mode_on   = false;
 static bool    s_sim_active      = true;   /* dashboard runs mock data */
 static bool    s_log_active      = false;
 static bool    s_details_open    = false;
@@ -188,7 +182,7 @@ static void _close_btn_cb(lv_event_t *e) {
     lv_obj_t *ret = s_return_screen;
     s_settings_screen = NULL;
     /* Null every live-widget pointer now; the screen is about to die. */
-    s_brightness_val_label = s_rotation_btn_label = s_night_btn_label = NULL;
+    s_brightness_val_label = NULL;
     s_sim_btn_label = s_log_btn_label = s_log_status_label = NULL;
     s_wifi_status_label = s_web_status_label = s_ap_status_label = NULL;
     s_can_health_dot = s_can_health_label = s_can_summary_label = NULL;
@@ -207,30 +201,6 @@ static void _brightness_slider_cb(lv_event_t *e) {
     if (s_brightness_val_label && lv_obj_is_valid(s_brightness_val_label))
         lv_label_set_text_fmt(s_brightness_val_label, "%d%%", v);
     sandbox_js_set_brightness(v);
-}
-
-static void _rotation_btn_cb(lv_event_t *e) {
-    if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
-    s_rotation_deg = (uint8_t)((s_rotation_deg + 1) % 4);
-    lv_disp_t *d = lv_disp_get_default();
-    if (d) lv_disp_set_rotation(d, (lv_disp_rot_t)s_rotation_deg);
-    if (s_rotation_btn_label && lv_obj_is_valid(s_rotation_btn_label)) {
-        static const char *names[] = {
-            "Rotation: 0\xC2\xB0",
-            "Rotation: 90\xC2\xB0",
-            "Rotation: 180\xC2\xB0",
-            "Rotation: 270\xC2\xB0",
-        };
-        lv_label_set_text(s_rotation_btn_label, names[s_rotation_deg]);
-    }
-}
-
-static void _night_btn_cb(lv_event_t *e) {
-    if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
-    s_night_mode_on = !s_night_mode_on;
-    if (s_night_btn_label && lv_obj_is_valid(s_night_btn_label))
-        lv_label_set_text(s_night_btn_label,
-            s_night_mode_on ? "Night Mode: ON" : "Night Mode: OFF");
 }
 
 static void _sim_btn_cb(lv_event_t *e) {
@@ -661,31 +631,8 @@ void device_settings_sandbox_open(lv_obj_t *return_screen) {
     lv_obj_set_style_text_color(dim_lbl, THEME_COLOR_TEXT_MUTED, 0);
     lv_obj_add_event_cb(dim_btn, _open_dimmer_cb, LV_EVENT_CLICKED, NULL);
 
-    /* Night mode toggle */
-    lv_obj_t *night_btn = lv_btn_create(disp_sec);
-    lv_obj_set_size(night_btn, 250, 30);
-    lv_obj_align(night_btn, LV_ALIGN_TOP_LEFT, 0, 120);
-    _style_secondary_btn(night_btn);
-    s_night_btn_label = lv_label_create(night_btn);
-    lv_label_set_text(s_night_btn_label, s_night_mode_on ? "Night Mode: ON" : "Night Mode: OFF");
-    lv_obj_center(s_night_btn_label);
-    lv_obj_set_style_text_font(s_night_btn_label, THEME_FONT_SMALL, 0);
-    lv_obj_set_style_text_color(s_night_btn_label, THEME_COLOR_TEXT_MUTED, 0);
-    lv_obj_add_event_cb(night_btn, _night_btn_cb, LV_EVENT_CLICKED, NULL);
-
-    /* Rotation toggle — unlike the firmware (where it's hidden pending
-     * RGB driver support), the sandbox display *does* support rotation,
-     * so we expose it. */
-    lv_obj_t *rot_btn = lv_btn_create(disp_sec);
-    lv_obj_set_size(rot_btn, 250, 30);
-    lv_obj_align(rot_btn, LV_ALIGN_TOP_LEFT, 0, 160);
-    _style_secondary_btn(rot_btn);
-    s_rotation_btn_label = lv_label_create(rot_btn);
-    lv_label_set_text(s_rotation_btn_label, "Rotation: 0\xC2\xB0");
-    lv_obj_center(s_rotation_btn_label);
-    lv_obj_set_style_text_font(s_rotation_btn_label, THEME_FONT_SMALL, 0);
-    lv_obj_set_style_text_color(s_rotation_btn_label, THEME_COLOR_TEXT_MUTED, 0);
-    lv_obj_add_event_cb(rot_btn, _rotation_btn_cb, LV_EVENT_CLICKED, NULL);
+    /* Night-mode + rotation live in the firmware tree but aren't in
+     * the current release build — omitted here to match. */
 
     /* ── Row 3: DATA LOGGING | PEAK HOLD | TESTING ───────────────── */
     lv_obj_t *row3 = _make_row(content, 95);
@@ -898,7 +845,7 @@ void device_settings_sandbox_close(void) {
     s_settings_screen = NULL;
     s_content_col = NULL;
     if (scr && lv_obj_is_valid(scr)) lv_obj_del(scr);
-    s_brightness_val_label = s_rotation_btn_label = s_night_btn_label = NULL;
+    s_brightness_val_label = NULL;
     s_sim_btn_label = s_log_btn_label = s_log_status_label = NULL;
     s_wifi_status_label = s_web_status_label = s_ap_status_label = NULL;
     s_can_health_dot = s_can_health_label = s_can_summary_label = NULL;

@@ -47,7 +47,7 @@
     },
     {
       "scrollSection": "display",
-      "voice": "Display — brightness, night mode, rotation.",
+      "voice": "Display — brightness slider and dimmer-switch binding.",
       "highlight": { "x": 400, "y": 80, "w": 370, "h": 240 },
       "wait": 3500
     },

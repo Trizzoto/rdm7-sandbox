@@ -31,10 +31,10 @@
     },
     {
       "id": "display-settings",
-      "title": "Display: Brightness & Night Mode",
+      "title": "Display: Brightness & Dimmer",
       "file": "display-settings.json",
-      "description": "Brightness slider, dimmer binding, night mode, rotation — all working live.",
-      "durationSec": 45
+      "description": "Brightness slider and dimmer-switch binding — change how the dash dims in low light.",
+      "durationSec": 30
     },
     {
       "id": "data-logging",
