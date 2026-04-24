@@ -26,7 +26,7 @@
     },
     {
       "scene": "step2",
-      "voice": "Step two: pick your ECU. Pre-loaded presets cover Haltech, Link, MoTeC, MaxxECU, MS3-Pro, and Ford Falcon.",
+      "voice": "Step two: pick your ECU. Pre-loaded presets cover Haltech, Link, MaxxECU, MegaSquirt, ECU Master, and Ford Falcon — plus an RDM-7 Internal preset for calculated signals.",
       "highlight": { "x": 120, "y": 155, "w": 280, "h": 90 },
       "wait": 4500
     },
@@ -36,7 +36,7 @@
       "wait": 4500
     },
     {
-      "voice": "Haltech Elite is pre-selected here. Tap Apply.",
+      "voice": "Haltech Nexus and Elite are pre-selected here. Tap Apply.",
       "highlight": { "x": 150, "y": 290, "w": 500, "h": 50 },
       "click": [400, 320],
       "delay": 1400

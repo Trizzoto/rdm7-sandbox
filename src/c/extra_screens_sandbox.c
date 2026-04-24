@@ -712,3 +712,482 @@ EMSCRIPTEN_KEEPALIVE
 void sandbox_open_diagnostics(void) {
     diagnostics_sandbox_open(lv_scr_act());
 }
+
+/* ─────────────────────────────────────────────────────────────────────
+ *  Dimmer Switch Config popup
+ *
+ *  Popup (not full-screen). 480x360 card on a semi-transparent backdrop
+ *  over whatever is the current screen. Matches the firmware's
+ *  brightness_dimmer_config_cb modal in structure & labels.
+ *
+ *  Fields (all UI-only in sandbox; no NVS persistence):
+ *    - Signal Source    dropdown (internal signals + layout signals)
+ *    - Threshold        one-line textarea (float, defaults to "0.5")
+ *    - Toggle Mode      dropdown  ("On/Off" | "Momentary")
+ *    - Invert           switch
+ *    - Enabled          switch
+ *    - Dim Brightness   slider 5-100%
+ *    - Save / Close buttons
+ * ───────────────────────────────────────────────────────────────────── */
+
+static lv_obj_t *s_dimmer_overlay = NULL;
+
+static void _dimmer_close(void) {
+    lv_obj_t *o = s_dimmer_overlay;
+    s_dimmer_overlay = NULL;
+    if (o && lv_obj_is_valid(o)) lv_obj_del(o);
+}
+
+static void _dimmer_close_cb(lv_event_t *e) {
+    if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
+    _dimmer_close();
+}
+
+static void _dimmer_save_cb(lv_event_t *e) {
+    if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
+    /* Sandbox never persists dimmer config — Save is a UI-only close. */
+    _dimmer_close();
+}
+
+static void _dimmer_noop_cb(lv_event_t *e) { (void)e; }
+
+/* Keep the %-label next to the Dim Brightness slider in sync as the
+ * user drags. user_data = target label. */
+static void _dimmer_slider_cb(lv_event_t *e) {
+    if (lv_event_get_code(e) != LV_EVENT_VALUE_CHANGED) return;
+    lv_obj_t *sl = lv_event_get_target(e);
+    lv_obj_t *lbl = (lv_obj_t *)lv_event_get_user_data(e);
+    if (!lbl || !lv_obj_is_valid(lbl)) return;
+    int v = lv_slider_get_value(sl);
+    lv_label_set_text_fmt(lbl, "%d%%", v);
+}
+
+void dimmer_config_sandbox_open(void) {
+    if (s_dimmer_overlay && lv_obj_is_valid(s_dimmer_overlay)) return;
+
+    /* Full-screen backdrop, semi-transparent, intercepts taps. Tapping
+     * the backdrop closes the popup (matches firmware behaviour). */
+    s_dimmer_overlay = lv_obj_create(lv_scr_act());
+    lv_obj_set_size(s_dimmer_overlay, LV_HOR_RES, LV_VER_RES);
+    lv_obj_center(s_dimmer_overlay);
+    lv_obj_set_style_bg_color(s_dimmer_overlay, THEME_COLOR_BG, 0);
+    lv_obj_set_style_bg_opa(s_dimmer_overlay, LV_OPA_50, 0);
+    lv_obj_set_style_border_width(s_dimmer_overlay, 0, 0);
+    lv_obj_clear_flag(s_dimmer_overlay, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_add_flag(s_dimmer_overlay, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_add_event_cb(s_dimmer_overlay, _dimmer_close_cb, LV_EVENT_CLICKED, NULL);
+
+    lv_obj_t *popup = lv_obj_create(s_dimmer_overlay);
+    lv_obj_set_size(popup, 480, 360);
+    lv_obj_center(popup);
+    lv_obj_set_style_bg_color(popup, THEME_COLOR_SURFACE, 0);
+    lv_obj_set_style_bg_opa(popup, LV_OPA_COVER, 0);
+    lv_obj_set_style_border_color(popup, THEME_COLOR_BORDER, 0);
+    lv_obj_set_style_border_width(popup, 1, 0);
+    lv_obj_set_style_radius(popup, THEME_RADIUS_NORMAL, 0);
+    lv_obj_set_style_shadow_width(popup, 20, 0);
+    lv_obj_set_style_shadow_ofs_y(popup, 4, 0);
+    lv_obj_set_style_shadow_color(popup, lv_color_black(), 0);
+    lv_obj_set_style_shadow_opa(popup, LV_OPA_50, 0);
+    lv_obj_set_style_pad_all(popup, 0, 0);
+    lv_obj_clear_flag(popup, LV_OBJ_FLAG_SCROLLABLE);
+    /* Block backdrop close when the popup itself is tapped. */
+    lv_obj_add_flag(popup, LV_OBJ_FLAG_CLICKABLE);
+
+    /* Header */
+    lv_obj_t *hdr = lv_obj_create(popup);
+    lv_obj_set_size(hdr, lv_pct(100), 44);
+    lv_obj_align(hdr, LV_ALIGN_TOP_MID, 0, 0);
+    lv_obj_set_style_bg_color(hdr, THEME_COLOR_SURFACE, 0);
+    lv_obj_set_style_bg_opa(hdr, LV_OPA_COVER, 0);
+    lv_obj_set_style_radius(hdr, 0, 0);
+    lv_obj_set_style_border_side(hdr, LV_BORDER_SIDE_BOTTOM, 0);
+    lv_obj_set_style_border_color(hdr, THEME_COLOR_BORDER, 0);
+    lv_obj_set_style_border_width(hdr, 1, 0);
+    lv_obj_clear_flag(hdr, LV_OBJ_FLAG_SCROLLABLE);
+
+    lv_obj_t *title = lv_label_create(hdr);
+    lv_label_set_text(title, "Brightness Dimmer Switch");
+    lv_obj_align(title, LV_ALIGN_LEFT_MID, 14, 0);
+    lv_obj_set_style_text_font(title, THEME_FONT_MEDIUM, 0);
+    lv_obj_set_style_text_color(title, THEME_COLOR_TEXT_PRIMARY, 0);
+
+    lv_obj_t *close_btn = lv_btn_create(hdr);
+    lv_obj_set_size(close_btn, 32, 28);
+    lv_obj_align(close_btn, LV_ALIGN_RIGHT_MID, -10, 0);
+    _style_secondary_btn(close_btn);
+    lv_obj_t *close_lbl = lv_label_create(close_btn);
+    lv_label_set_text(close_lbl, LV_SYMBOL_CLOSE);
+    lv_obj_center(close_lbl);
+    lv_obj_set_style_text_font(close_lbl, THEME_FONT_SMALL, 0);
+    lv_obj_set_style_text_color(close_lbl, THEME_COLOR_TEXT_MUTED, 0);
+    lv_obj_add_event_cb(close_btn, _dimmer_close_cb, LV_EVENT_CLICKED, NULL);
+
+    /* Body */
+    lv_obj_t *body = lv_obj_create(popup);
+    lv_obj_set_size(body, lv_pct(100), 258);
+    lv_obj_align(body, LV_ALIGN_TOP_MID, 0, 46);
+    lv_obj_set_style_bg_opa(body, 0, 0);
+    lv_obj_set_style_border_width(body, 0, 0);
+    lv_obj_set_style_pad_all(body, 18, 0);
+    lv_obj_clear_flag(body, LV_OBJ_FLAG_SCROLLABLE);
+
+    /* Row 1 — Signal Source (left) + Threshold (right) */
+    lv_obj_t *sig_cap = lv_label_create(body);
+    lv_label_set_text(sig_cap, "Signal Source");
+    lv_obj_align(sig_cap, LV_ALIGN_TOP_LEFT, 0, 0);
+    lv_obj_set_style_text_font(sig_cap, THEME_FONT_TINY, 0);
+    lv_obj_set_style_text_color(sig_cap, THEME_COLOR_TEXT_HINT, 0);
+
+    lv_obj_t *sig_dd = lv_dropdown_create(body);
+    /* Internal signals first (mirrors firmware's _build_signal_options
+     * order), then a few layout signals. */
+    lv_dropdown_set_options(sig_dd,
+        "INDICATOR_LEFT\n"
+        "INDICATOR_RIGHT\n"
+        "FUEL_SENDER_V\n"
+        "CHIP_TEMP\n"
+        "FPS\n"
+        "CPU_PERCENT\n"
+        "FREE_HEAP_KB\n"
+        "FREE_PSRAM_KB\n"
+        "UPTIME_S\n"
+        "WIFI_RSSI\n"
+        "RPM\n"
+        "VEHICLE_SPEED\n"
+        "THROTTLE\n"
+        "COOLANT_TEMP");
+    lv_obj_set_size(sig_dd, 240, 32);
+    lv_obj_align(sig_dd, LV_ALIGN_TOP_LEFT, 0, 16);
+    _style_dropdown(sig_dd);
+    lv_dropdown_set_selected(sig_dd, 0);  /* INDICATOR_LEFT default */
+    lv_obj_add_event_cb(sig_dd, _dimmer_noop_cb, LV_EVENT_VALUE_CHANGED, NULL);
+
+    lv_obj_t *thr_cap = lv_label_create(body);
+    lv_label_set_text(thr_cap, "Threshold");
+    lv_obj_align(thr_cap, LV_ALIGN_TOP_LEFT, 260, 0);
+    lv_obj_set_style_text_font(thr_cap, THEME_FONT_TINY, 0);
+    lv_obj_set_style_text_color(thr_cap, THEME_COLOR_TEXT_HINT, 0);
+
+    lv_obj_t *thr_ta = lv_textarea_create(body);
+    lv_textarea_set_one_line(thr_ta, true);
+    lv_textarea_set_max_length(thr_ta, 8);
+    lv_textarea_set_text(thr_ta, "0.5");
+    lv_obj_set_size(thr_ta, 160, 32);
+    lv_obj_align(thr_ta, LV_ALIGN_TOP_LEFT, 260, 16);
+    lv_obj_set_style_bg_color(thr_ta, THEME_COLOR_INPUT_BG, 0);
+    lv_obj_set_style_text_color(thr_ta, THEME_COLOR_TEXT_PRIMARY, 0);
+    lv_obj_set_style_text_font(thr_ta, THEME_FONT_SMALL, 0);
+    lv_obj_set_style_border_color(thr_ta, THEME_COLOR_BORDER, 0);
+    lv_obj_set_style_border_width(thr_ta, 1, 0);
+    lv_obj_set_style_radius(thr_ta, THEME_RADIUS_NORMAL, 0);
+    lv_obj_set_style_pad_all(thr_ta, 6, 0);
+
+    /* Row 2 — Toggle Mode */
+    lv_obj_t *mode_cap = lv_label_create(body);
+    lv_label_set_text(mode_cap, "Toggle Mode");
+    lv_obj_align(mode_cap, LV_ALIGN_TOP_LEFT, 0, 62);
+    lv_obj_set_style_text_font(mode_cap, THEME_FONT_TINY, 0);
+    lv_obj_set_style_text_color(mode_cap, THEME_COLOR_TEXT_HINT, 0);
+
+    lv_obj_t *mode_dd = lv_dropdown_create(body);
+    lv_dropdown_set_options(mode_dd, "On/Off\nMomentary");
+    lv_obj_set_size(mode_dd, 240, 32);
+    lv_obj_align(mode_dd, LV_ALIGN_TOP_LEFT, 0, 78);
+    _style_dropdown(mode_dd);
+    lv_dropdown_set_selected(mode_dd, 0);
+    lv_obj_add_event_cb(mode_dd, _dimmer_noop_cb, LV_EVENT_VALUE_CHANGED, NULL);
+
+    /* Row 2 right — Invert + Enabled switches side-by-side */
+    lv_obj_t *inv_cap = lv_label_create(body);
+    lv_label_set_text(inv_cap, "Invert");
+    lv_obj_align(inv_cap, LV_ALIGN_TOP_LEFT, 260, 62);
+    lv_obj_set_style_text_font(inv_cap, THEME_FONT_TINY, 0);
+    lv_obj_set_style_text_color(inv_cap, THEME_COLOR_TEXT_HINT, 0);
+
+    lv_obj_t *inv_sw = lv_switch_create(body);
+    lv_obj_set_size(inv_sw, 46, 24);
+    lv_obj_align(inv_sw, LV_ALIGN_TOP_LEFT, 260, 82);
+    lv_obj_set_style_bg_color(inv_sw, THEME_COLOR_INPUT_BG, 0);
+    lv_obj_set_style_bg_color(inv_sw, THEME_COLOR_ACCENT_BLUE, LV_PART_INDICATOR | LV_STATE_CHECKED);
+
+    lv_obj_t *en_cap = lv_label_create(body);
+    lv_label_set_text(en_cap, "Enabled");
+    lv_obj_align(en_cap, LV_ALIGN_TOP_LEFT, 340, 62);
+    lv_obj_set_style_text_font(en_cap, THEME_FONT_TINY, 0);
+    lv_obj_set_style_text_color(en_cap, THEME_COLOR_TEXT_HINT, 0);
+
+    lv_obj_t *en_sw = lv_switch_create(body);
+    lv_obj_set_size(en_sw, 46, 24);
+    lv_obj_align(en_sw, LV_ALIGN_TOP_LEFT, 340, 82);
+    lv_obj_set_style_bg_color(en_sw, THEME_COLOR_INPUT_BG, 0);
+    lv_obj_set_style_bg_color(en_sw, THEME_COLOR_ACCENT_BLUE, LV_PART_INDICATOR | LV_STATE_CHECKED);
+    lv_obj_add_state(en_sw, LV_STATE_CHECKED);  /* enabled by default */
+
+    /* Row 3 — Dim Brightness slider + live %-label */
+    lv_obj_t *dim_cap = lv_label_create(body);
+    lv_label_set_text(dim_cap, "Dim Brightness");
+    lv_obj_align(dim_cap, LV_ALIGN_TOP_LEFT, 0, 130);
+    lv_obj_set_style_text_font(dim_cap, THEME_FONT_TINY, 0);
+    lv_obj_set_style_text_color(dim_cap, THEME_COLOR_TEXT_HINT, 0);
+
+    lv_obj_t *dim_slider = lv_slider_create(body);
+    lv_obj_set_size(dim_slider, 340, 20);
+    lv_obj_align(dim_slider, LV_ALIGN_TOP_LEFT, 0, 150);
+    lv_slider_set_range(dim_slider, 5, 100);
+    lv_slider_set_value(dim_slider, 40, LV_ANIM_OFF);
+    lv_obj_set_style_bg_color(dim_slider, THEME_COLOR_INPUT_BG, 0);
+    lv_obj_set_style_bg_opa(dim_slider, LV_OPA_COVER, 0);
+    lv_obj_set_style_radius(dim_slider, 10, 0);
+    lv_obj_set_style_bg_color(dim_slider, THEME_COLOR_ACCENT_BLUE, LV_PART_INDICATOR);
+    lv_obj_set_style_bg_opa(dim_slider, LV_OPA_COVER, LV_PART_INDICATOR);
+    lv_obj_set_style_radius(dim_slider, 10, LV_PART_INDICATOR);
+    lv_obj_set_style_bg_color(dim_slider, THEME_COLOR_TEXT_PRIMARY, LV_PART_KNOB);
+    lv_obj_set_style_radius(dim_slider, LV_RADIUS_CIRCLE, LV_PART_KNOB);
+
+    lv_obj_t *dim_val = lv_label_create(body);
+    lv_label_set_text(dim_val, "40%");
+    lv_obj_align(dim_val, LV_ALIGN_TOP_LEFT, 350, 152);
+    lv_obj_set_style_text_font(dim_val, THEME_FONT_SMALL, 0);
+    lv_obj_set_style_text_color(dim_val, THEME_COLOR_TEXT_PRIMARY, 0);
+    /* Keep the %-label in sync as the user drags the slider. */
+    lv_obj_add_event_cb(dim_slider, _dimmer_slider_cb, LV_EVENT_VALUE_CHANGED, dim_val);
+
+    /* Row 4 — Explanation */
+    lv_obj_t *explain = lv_label_create(body);
+    lv_label_set_text(explain,
+        "When the selected signal crosses the threshold, the dash\n"
+        "drops to the Dim Brightness above. Invert flips the polarity\n"
+        "(active = below threshold). Momentary resets on signal low.");
+    lv_obj_align(explain, LV_ALIGN_TOP_LEFT, 0, 184);
+    lv_obj_set_style_text_font(explain, THEME_FONT_TINY, 0);
+    lv_obj_set_style_text_color(explain, THEME_COLOR_TEXT_MUTED, 0);
+
+    /* Footer: Save + Cancel (popup is closed on backdrop click too) */
+    lv_obj_t *footer = lv_obj_create(popup);
+    lv_obj_set_size(footer, lv_pct(100), 52);
+    lv_obj_align(footer, LV_ALIGN_BOTTOM_MID, 0, 0);
+    lv_obj_set_style_bg_color(footer, THEME_COLOR_SURFACE, 0);
+    lv_obj_set_style_bg_opa(footer, LV_OPA_COVER, 0);
+    lv_obj_set_style_radius(footer, 0, 0);
+    lv_obj_set_style_border_side(footer, LV_BORDER_SIDE_TOP, 0);
+    lv_obj_set_style_border_color(footer, THEME_COLOR_BORDER, 0);
+    lv_obj_set_style_border_width(footer, 1, 0);
+    lv_obj_set_style_pad_all(footer, 10, 0);
+    lv_obj_clear_flag(footer, LV_OBJ_FLAG_SCROLLABLE);
+
+    lv_obj_t *cancel = lv_btn_create(footer);
+    lv_obj_set_size(cancel, 200, 32);
+    lv_obj_align(cancel, LV_ALIGN_LEFT_MID, 14, 0);
+    _style_secondary_btn(cancel);
+    lv_obj_t *cancel_lbl = lv_label_create(cancel);
+    lv_label_set_text(cancel_lbl, "Cancel");
+    lv_obj_center(cancel_lbl);
+    lv_obj_set_style_text_font(cancel_lbl, THEME_FONT_SMALL, 0);
+    lv_obj_set_style_text_color(cancel_lbl, THEME_COLOR_TEXT_MUTED, 0);
+    lv_obj_add_event_cb(cancel, _dimmer_close_cb, LV_EVENT_CLICKED, NULL);
+
+    lv_obj_t *save = lv_btn_create(footer);
+    lv_obj_set_size(save, 200, 32);
+    lv_obj_align(save, LV_ALIGN_RIGHT_MID, -14, 0);
+    _style_accent_btn(save);
+    lv_obj_t *save_lbl = lv_label_create(save);
+    lv_label_set_text(save_lbl, LV_SYMBOL_SAVE "  Save");
+    lv_obj_center(save_lbl);
+    lv_obj_set_style_text_font(save_lbl, THEME_FONT_SMALL, 0);
+    lv_obj_set_style_text_color(save_lbl, THEME_COLOR_TEXT_ON_ACCENT, 0);
+    lv_obj_add_event_cb(save, _dimmer_save_cb, LV_EVENT_CLICKED, NULL);
+}
+
+void dimmer_config_sandbox_close(void) { _dimmer_close(); }
+
+EMSCRIPTEN_KEEPALIVE
+void sandbox_open_dimmer_config(void) { dimmer_config_sandbox_open(); }
+
+/* ─────────────────────────────────────────────────────────────────────
+ *  CAN Bus Scan overlay
+ *
+ *  Opens over whatever screen is active. Sweeps the four common
+ *  bitrates with a fake progress bar (same mock data as the wizard's
+ *  first-boot scan — 500 kbps wins). Completion shows Apply + Close
+ *  so the user has a full loop to experiment with. UI-only: tapping
+ *  Apply doesn't mutate any real bus config — the sandbox has no
+ *  CAN bus to bind to.
+ * ───────────────────────────────────────────────────────────────────── */
+
+static lv_obj_t  *s_scan_overlay   = NULL;
+static lv_obj_t  *s_scan_status    = NULL;
+static lv_obj_t  *s_scan_bar       = NULL;
+static lv_obj_t  *s_scan_rows[4]   = {NULL};
+static lv_obj_t  *s_scan_detail    = NULL;
+static lv_obj_t  *s_scan_apply_btn = NULL;
+static lv_timer_t *s_scan_timer    = NULL;
+static uint8_t    s_scan_phase     = 0;
+
+static void _bus_scan_close(void) {
+    if (s_scan_timer) { lv_timer_del(s_scan_timer); s_scan_timer = NULL; }
+    lv_obj_t *o = s_scan_overlay;
+    s_scan_overlay = NULL;
+    s_scan_status = s_scan_bar = s_scan_detail = s_scan_apply_btn = NULL;
+    for (int i = 0; i < 4; i++) s_scan_rows[i] = NULL;
+    if (o && lv_obj_is_valid(o)) lv_obj_del(o);
+}
+
+static void _bus_scan_close_cb(lv_event_t *e) {
+    if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
+    _bus_scan_close();
+}
+
+static void _bus_scan_tick(lv_timer_t *t) {
+    (void)t;
+    if (!s_scan_bar || !lv_obj_is_valid(s_scan_bar)) return;
+    s_scan_phase++;
+
+    /* 8 ticks of 250 ms each = 2 seconds. Rows reveal one at a time
+     * with fake frame counts — 500 kbps wins with 142 frames. */
+    const char *row_text[4] = {
+        "125 kbps: no traffic",
+        "250 kbps: 2 frames (noise)",
+        "500 kbps: 142 frames - 8 IDs",
+        "1 Mbps:   no traffic",
+    };
+    const lv_color_t row_color[4] = {
+        THEME_COLOR_TEXT_MUTED,
+        THEME_COLOR_TEXT_MUTED,
+        THEME_COLOR_ACCENT_GREEN,
+        THEME_COLOR_TEXT_MUTED,
+    };
+
+    uint8_t progress = (s_scan_phase * 100) / 8;
+    if (progress > 100) progress = 100;
+    lv_bar_set_value(s_scan_bar, progress, LV_ANIM_ON);
+
+    if (s_scan_phase <= 4) {
+        uint8_t idx = s_scan_phase - 1;
+        if (idx < 4 && s_scan_rows[idx] && lv_obj_is_valid(s_scan_rows[idx])) {
+            lv_label_set_text(s_scan_rows[idx], row_text[idx]);
+            lv_obj_set_style_text_color(s_scan_rows[idx], row_color[idx], 0);
+        }
+        if (s_scan_status) {
+            lv_label_set_text_fmt(s_scan_status, "Scanning %s...",
+                                  (idx < 4) ? (const char *[]){ "125k", "250k", "500k", "1M" }[idx] : "...");
+        }
+    } else if (s_scan_phase >= 8) {
+        /* Complete — stop, swap status text, reveal Apply button. */
+        if (s_scan_status) {
+            lv_label_set_text(s_scan_status, "Scan complete");
+            lv_obj_set_style_text_color(s_scan_status, THEME_COLOR_ACCENT_GREEN, 0);
+        }
+        if (s_scan_detail) {
+            lv_label_set_text(s_scan_detail,
+                "Recommended: 500 kbps (142 frames, 8 unique IDs)");
+        }
+        if (s_scan_apply_btn && lv_obj_is_valid(s_scan_apply_btn))
+            lv_obj_clear_flag(s_scan_apply_btn, LV_OBJ_FLAG_HIDDEN);
+        if (s_scan_timer) { lv_timer_del(s_scan_timer); s_scan_timer = NULL; }
+    }
+}
+
+void bus_scan_sandbox_open(void) {
+    if (s_scan_overlay && lv_obj_is_valid(s_scan_overlay)) return;
+
+    s_scan_overlay = lv_obj_create(lv_scr_act());
+    lv_obj_set_size(s_scan_overlay, LV_HOR_RES, LV_VER_RES);
+    lv_obj_center(s_scan_overlay);
+    lv_obj_set_style_bg_color(s_scan_overlay, THEME_COLOR_BG, 0);
+    lv_obj_set_style_bg_opa(s_scan_overlay, LV_OPA_70, 0);
+    lv_obj_set_style_border_width(s_scan_overlay, 0, 0);
+    lv_obj_clear_flag(s_scan_overlay, LV_OBJ_FLAG_SCROLLABLE);
+
+    lv_obj_t *card = lv_obj_create(s_scan_overlay);
+    lv_obj_set_size(card, 560, 360);
+    lv_obj_center(card);
+    lv_obj_set_style_bg_color(card, THEME_COLOR_SURFACE, 0);
+    lv_obj_set_style_bg_opa(card, LV_OPA_COVER, 0);
+    lv_obj_set_style_border_color(card, THEME_COLOR_BORDER, 0);
+    lv_obj_set_style_border_width(card, 1, 0);
+    lv_obj_set_style_radius(card, THEME_RADIUS_NORMAL, 0);
+    lv_obj_set_style_shadow_width(card, 20, 0);
+    lv_obj_set_style_shadow_color(card, lv_color_black(), 0);
+    lv_obj_set_style_shadow_opa(card, LV_OPA_50, 0);
+    lv_obj_set_style_pad_all(card, 20, 0);
+    lv_obj_clear_flag(card, LV_OBJ_FLAG_SCROLLABLE);
+
+    lv_obj_t *title = lv_label_create(card);
+    lv_label_set_text(title, "CAN Bus Scan");
+    lv_obj_align(title, LV_ALIGN_TOP_LEFT, 0, 0);
+    lv_obj_set_style_text_font(title, THEME_FONT_MEDIUM, 0);
+    lv_obj_set_style_text_color(title, THEME_COLOR_TEXT_PRIMARY, 0);
+
+    s_scan_status = lv_label_create(card);
+    lv_label_set_text(s_scan_status, "Scanning 125k...");
+    lv_obj_align(s_scan_status, LV_ALIGN_TOP_LEFT, 0, 28);
+    lv_obj_set_style_text_font(s_scan_status, THEME_FONT_SMALL, 0);
+    lv_obj_set_style_text_color(s_scan_status, THEME_COLOR_TEXT_MUTED, 0);
+
+    s_scan_bar = lv_bar_create(card);
+    lv_obj_set_size(s_scan_bar, 520, 14);
+    lv_obj_align(s_scan_bar, LV_ALIGN_TOP_LEFT, 0, 54);
+    lv_bar_set_range(s_scan_bar, 0, 100);
+    lv_bar_set_value(s_scan_bar, 0, LV_ANIM_OFF);
+    lv_obj_set_style_bg_color(s_scan_bar, THEME_COLOR_INPUT_BG, 0);
+    lv_obj_set_style_bg_opa(s_scan_bar, LV_OPA_COVER, 0);
+    lv_obj_set_style_radius(s_scan_bar, 7, 0);
+    lv_obj_set_style_bg_color(s_scan_bar, THEME_COLOR_ACCENT_BLUE, LV_PART_INDICATOR);
+    lv_obj_set_style_bg_opa(s_scan_bar, LV_OPA_COVER, LV_PART_INDICATOR);
+    lv_obj_set_style_radius(s_scan_bar, 7, LV_PART_INDICATOR);
+
+    for (int i = 0; i < 4; i++) {
+        s_scan_rows[i] = lv_label_create(card);
+        const char *pre[4] = {
+            "125 kbps: --",
+            "250 kbps: --",
+            "500 kbps: --",
+            "1 Mbps:   --",
+        };
+        lv_label_set_text(s_scan_rows[i], pre[i]);
+        lv_obj_align(s_scan_rows[i], LV_ALIGN_TOP_LEFT, 0, 82 + i * 22);
+        lv_obj_set_style_text_font(s_scan_rows[i], THEME_FONT_SMALL, 0);
+        lv_obj_set_style_text_color(s_scan_rows[i], THEME_COLOR_TEXT_HINT, 0);
+    }
+
+    s_scan_detail = lv_label_create(card);
+    lv_label_set_text(s_scan_detail, "Testing each bitrate for 500 ms. Sit tight.");
+    lv_obj_align(s_scan_detail, LV_ALIGN_TOP_LEFT, 0, 186);
+    lv_obj_set_style_text_font(s_scan_detail, THEME_FONT_TINY, 0);
+    lv_obj_set_style_text_color(s_scan_detail, THEME_COLOR_TEXT_MUTED, 0);
+
+    /* Close button — always visible */
+    lv_obj_t *close_btn = lv_btn_create(card);
+    lv_obj_set_size(close_btn, 240, 36);
+    lv_obj_align(close_btn, LV_ALIGN_BOTTOM_LEFT, 0, 0);
+    _style_secondary_btn(close_btn);
+    lv_obj_t *close_lbl = lv_label_create(close_btn);
+    lv_label_set_text(close_lbl, "Close");
+    lv_obj_center(close_lbl);
+    lv_obj_set_style_text_font(close_lbl, THEME_FONT_SMALL, 0);
+    lv_obj_set_style_text_color(close_lbl, THEME_COLOR_TEXT_MUTED, 0);
+    lv_obj_add_event_cb(close_btn, _bus_scan_close_cb, LV_EVENT_CLICKED, NULL);
+
+    /* Apply button — hidden until scan completes */
+    s_scan_apply_btn = lv_btn_create(card);
+    lv_obj_set_size(s_scan_apply_btn, 240, 36);
+    lv_obj_align(s_scan_apply_btn, LV_ALIGN_BOTTOM_RIGHT, 0, 0);
+    _style_accent_btn(s_scan_apply_btn);
+    lv_obj_t *apply_lbl = lv_label_create(s_scan_apply_btn);
+    lv_label_set_text(apply_lbl, LV_SYMBOL_OK "  Apply 500 kbps");
+    lv_obj_center(apply_lbl);
+    lv_obj_set_style_text_font(apply_lbl, THEME_FONT_SMALL, 0);
+    lv_obj_set_style_text_color(apply_lbl, THEME_COLOR_TEXT_ON_ACCENT, 0);
+    lv_obj_add_flag(s_scan_apply_btn, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_event_cb(s_scan_apply_btn, _bus_scan_close_cb, LV_EVENT_CLICKED, NULL);
+
+    s_scan_phase = 0;
+    if (s_scan_timer) lv_timer_del(s_scan_timer);
+    s_scan_timer = lv_timer_create(_bus_scan_tick, 250, NULL);
+}
+
+void bus_scan_sandbox_close(void) { _bus_scan_close(); }
+
+EMSCRIPTEN_KEEPALIVE
+void sandbox_open_bus_scan(void) { bus_scan_sandbox_open(); }

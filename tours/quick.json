@@ -15,7 +15,7 @@
     },
     {
       "scene": "step2",
-      "voice": "Next, pick your ECU. The dash ships with presets for Haltech, Link, MoTeC, MaxxECU, MS3-Pro, and Ford Falcon. Haltech Elite is selected here.",
+      "voice": "Next, pick your ECU. Presets cover Haltech, Link ECU, MaxxECU, MegaSquirt, ECU Master, and Ford Falcon. Haltech Nexus / Elite is selected here.",
       "highlight": { "x": 100, "y": 140, "w": 600, "h": 80 },
       "wait": 6500
     },

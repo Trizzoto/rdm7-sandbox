@@ -124,6 +124,6 @@ target_link_options(rdm7-sandbox PRIVATE
     -sMODULARIZE=1
     -sEXPORT_NAME='RDM7Sandbox'
     -sASSERTIONS=1
-    "SHELL:-s EXPORTED_FUNCTIONS=['_main','_sandbox_set_pointer','_sandbox_step','_sandbox_set_scene','_sandbox_inject_signal','_sandbox_device_settings_scroll','_sandbox_open_widget_config','_sandbox_close_widget_config','_sandbox_open_wifi_settings','_sandbox_open_peaks','_sandbox_open_diagnostics','_malloc','_free']"
+    "SHELL:-s EXPORTED_FUNCTIONS=['_main','_sandbox_set_pointer','_sandbox_step','_sandbox_set_scene','_sandbox_inject_signal','_sandbox_device_settings_scroll','_sandbox_open_widget_config','_sandbox_close_widget_config','_sandbox_open_wifi_settings','_sandbox_open_peaks','_sandbox_open_diagnostics','_sandbox_open_dimmer_config','_sandbox_open_bus_scan','_malloc','_free']"
     "SHELL:-s EXPORTED_RUNTIME_METHODS=['ccall','cwrap','FS','HEAPU8']"
 )

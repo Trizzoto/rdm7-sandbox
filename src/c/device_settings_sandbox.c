@@ -69,6 +69,13 @@
 extern void wifi_settings_sandbox_open(lv_obj_t *return_screen);
 extern void peaks_sandbox_open(lv_obj_t *return_screen);
 extern void diagnostics_sandbox_open(lv_obj_t *return_screen);
+extern void dimmer_config_sandbox_open(void);
+extern void bus_scan_sandbox_open(void);
+
+/* Wizard — relaunches the first-run flow. Defined in wizard_sandbox.c
+ * (EMSCRIPTEN_KEEPALIVE-exported so it's also reachable from JS). */
+extern void sandbox_set_scene(int scene);
+#define SCENE_STEP1_ID 0
 
 /* Live display dimming — dims the <canvas> via CSS filter so the user
  * sees the slider actually affecting screen brightness, not just the
@@ -266,6 +273,27 @@ static void _open_peaks_cb(lv_event_t *e) {
 static void _open_diag_cb(lv_event_t *e) {
     if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
     diagnostics_sandbox_open(s_settings_screen);
+}
+
+static void _open_dimmer_cb(lv_event_t *e) {
+    if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
+    /* Dimmer popup layers on top of Device Settings rather than
+     * replacing it — the overlay's click handler closes it so we
+     * drop back here. */
+    dimmer_config_sandbox_open();
+}
+
+static void _open_bus_scan_cb(lv_event_t *e) {
+    if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
+    bus_scan_sandbox_open();
+}
+
+/* "Run Setup Wizard" — closes this settings screen and rebuilds the
+ * wizard overlay on top of the dashboard. sandbox_set_scene handles
+ * the teardown + re-open atomically. */
+static void _run_wizard_cb(lv_event_t *e) {
+    if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
+    sandbox_set_scene(SCENE_STEP1_ID);
 }
 
 /* Placeholder clicks for subsystems we don't emulate yet. */
@@ -472,7 +500,7 @@ void device_settings_sandbox_open(lv_obj_t *return_screen) {
     _style_secondary_btn(ecu_btn);
     lv_obj_set_style_bg_color(ecu_btn, THEME_COLOR_INPUT_BG, 0);
     lv_obj_t *ecu_val = lv_label_create(ecu_btn);
-    lv_label_set_text(ecu_val, "Haltech - Nexus R5");
+    lv_label_set_text(ecu_val, "Haltech - Nexus / Elite");
     lv_label_set_long_mode(ecu_val, LV_LABEL_LONG_DOT);
     lv_obj_set_width(ecu_val, lv_pct(95));
     lv_obj_align(ecu_val, LV_ALIGN_LEFT_MID, 0, 0);
@@ -631,8 +659,7 @@ void device_settings_sandbox_open(lv_obj_t *return_screen) {
     lv_obj_center(dim_lbl);
     lv_obj_set_style_text_font(dim_lbl, THEME_FONT_SMALL, 0);
     lv_obj_set_style_text_color(dim_lbl, THEME_COLOR_TEXT_MUTED, 0);
-    lv_obj_add_event_cb(dim_btn, _placeholder_cb, LV_EVENT_CLICKED,
-                        "Dimmer Switch - preview");
+    lv_obj_add_event_cb(dim_btn, _open_dimmer_cb, LV_EVENT_CLICKED, NULL);
 
     /* Night mode toggle */
     lv_obj_t *night_btn = lv_btn_create(disp_sec);
@@ -785,7 +812,7 @@ void device_settings_sandbox_open(lv_obj_t *return_screen) {
     lv_obj_center(scan_lbl);
     lv_obj_set_style_text_font(scan_lbl, THEME_FONT_TINY, 0);
     lv_obj_set_style_text_color(scan_lbl, THEME_COLOR_TEXT_ON_ACCENT, 0);
-    lv_obj_add_event_cb(scan_btn, _placeholder_cb, LV_EVENT_CLICKED, "Bus Scan - preview");
+    lv_obj_add_event_cb(scan_btn, _open_bus_scan_cb, LV_EVENT_CLICKED, NULL);
 
     /* Health row */
     lv_obj_t *health_row = lv_obj_create(diag_sec);
@@ -853,7 +880,7 @@ void device_settings_sandbox_open(lv_obj_t *return_screen) {
     _footer_btn(content, "System Diagnostics", THEME_COLOR_TEXT_PRIMARY,
                 _open_diag_cb, NULL);
     _footer_btn(content, "Run Setup Wizard", THEME_COLOR_TEXT_PRIMARY,
-                _placeholder_cb, "Setup Wizard - preview");
+                _run_wizard_cb, NULL);
     _footer_btn(content, "Reset to Default", THEME_COLOR_STATUS_ERROR,
                 _placeholder_cb, "Factory Reset - preview");
 

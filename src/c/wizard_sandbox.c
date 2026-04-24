@@ -68,18 +68,22 @@ static const mock_bitrate_result_t MOCK_RESULTS[4] = {
 };
 #define RECOMMENDED_SLOT 2  /* 500 kbps */
 
-/* ── ECU preset list (matching firmware/main/layout/ecu_presets.h shape) */
+/* ── ECU preset list — MUST MATCH main/layout/ecu_presets.c in the
+ * firmware repo. This is the canonical list every dashboard ships
+ * with; adding a preset here without adding one there means the
+ * sandbox wizard drops users into a layout that won't exist on
+ * real hardware. */
 typedef struct { const char *make; const char *version; } preset_t;
 static const preset_t PRESETS[] = {
-    { "Haltech", "Elite 1500/2000/2500" },
-    { "Haltech", "Nexus R5" },
-    { "Link",    "G4+ / G4X" },
-    { "MoTeC",   "M1 Series" },
-    { "MaxxECU", "Mini / Street / Sport" },
-    { "MaxxECU", "V1.2" },
-    { "MS3-Pro", "PnP" },
-    { "Ford",    "Falcon BA / BF" },
-    { "Ford",    "Falcon FG" },
+    { "ECU Master", "Black / Classic"          },
+    { "MegaSquirt", "MS3-Pro"                   },
+    { "Haltech",    "Nexus / Elite"             },
+    { "MaxxECU",    "firmware 1.2"              },
+    { "MaxxECU",    "firmware 1.3+"             },
+    { "Ford",       "Falcon BA / BF"            },
+    { "Ford",       "Falcon FG"                 },
+    { "Link ECU",   "G4+ / G4X Generic Dash"    },
+    { "RDM-7",      "Internal (calculated gear)" },
 };
 #define PRESET_COUNT ((int)(sizeof(PRESETS) / sizeof(PRESETS[0])))
 #define CUSTOM_LABEL "Custom / None"
