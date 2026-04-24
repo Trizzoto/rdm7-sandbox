@@ -531,13 +531,25 @@ export class DashSandboxElement extends HTMLElement {
 
     const pointer = new PointerInjector(this.mod);
     this.runner = new TutorialRunner(pointer, this.overlay, this.voice, this.mod, {
-      onCaption: (c) => this.setCaption(c),
-      onStep:    (i, s) => this.handleStepChange(i, s),
-      onEnd:     () => this.handleTourEnd(),
+      onCaption: (c) => {
+        this.setCaption(c);
+        this.dispatchEvent(new CustomEvent('caption', { detail: c }));
+      },
+      onStep: (i, s) => {
+        this.handleStepChange(i, s);
+        this.dispatchEvent(new CustomEvent('step', { detail: { index: i, step: s } }));
+      },
+      onEnd: () => {
+        this.handleTourEnd();
+        this.dispatchEvent(new CustomEvent('end'));
+      },
     });
 
     this.setTransportEnabled(true);
     this.captionEl.textContent = 'Press Play to begin.';
+    /* Announce readiness — host pages that mount their own controls
+     * use this to flip from "loading" to "ready" and enable play. */
+    this.dispatchEvent(new CustomEvent('ready', { detail: { script: this.script } }));
 
     // Expose for external automation (tests, console debugging).
     (this as any).runner = this.runner;
@@ -545,13 +557,26 @@ export class DashSandboxElement extends HTMLElement {
 
     // Show the Start / Skip dialog. Filled in with the active tour's
     // metadata so picker swaps re-prompt with the right title. Hidden
-    // immediately if the host opted into autoplay.
+    // immediately if the host opted into autoplay OR is rendering its
+    // own control panel via the `controlled` attribute.
     if (this.hasAttribute('autoplay')) {
       void this.togglePlay();
+    } else if (this.hasAttribute('controlled')) {
+      /* Host drives play/pause externally; the in-canvas startup
+       * overlay and transport bar are hidden via CSS. */
     } else {
       this.showStartup(this.script);
     }
   }
+
+  /* Public API for `controlled` host pages. These wrap the private
+   * toggle / runner calls so external buttons don't have to know the
+   * internal state machine. */
+  public start()   { void this.togglePlay(); }
+  public pause()   { if (this.isPlaying) void this.togglePlay(); }
+  public nextStep(){ if (this.script) void this.runner?.next(this.script); }
+  public backStep(){ if (this.script) this.runner?.back(this.script); }
+  public restart() { if (this.script) void this.runner?.play(this.script, 0); }
 
   /** Make the startup overlay visible with the current tour's metadata. */
   private showStartup(script: TourScript) {
@@ -650,6 +675,8 @@ export class DashSandboxElement extends HTMLElement {
       // as-is so layout doesn't jump.
       oldIcon.outerHTML = playing ? ICON_PAUSE : ICON_PLAY;
     }
+    /* Mirror state to host pages that render their own play button. */
+    this.dispatchEvent(new CustomEvent('playstate', { detail: { playing } }));
   }
 
   private setCaption(text: string) {

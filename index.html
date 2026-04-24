@@ -189,12 +189,83 @@
     .hero-body strong { color: var(--text); font-weight: 600; }
     .hero-body + .hero-body { margin-top: 10px; }
 
+    /* Caption during active tour — replaces the intro prose in place.
+     * Subtle tint + left accent stripe to signal "this is narration,
+     * not static copy". */
+    .caption-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 4px;
+      padding: 14px 16px;
+      font-size: 14px;
+      line-height: 1.55;
+      color: var(--text);
+      min-height: 84px;
+      transition: opacity 0.25s ease;
+    }
+
+    /* Control strip — Start / Play-Pause / Prev / Next / Restart.
+     * Primary CTA loud red so first-time visitors see where to click. */
+    .controls {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .controls .btn {
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      border: 1px solid var(--btn-bg);
+      border-radius: 2px;
+      padding: 8px 14px;
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background .15s, border-color .15s;
+    }
+    .controls .btn:hover:not(:disabled) { background: var(--btn-bg-2); border-color: var(--btn-bg-2); }
+    .controls .btn:focus { outline: none; box-shadow: 0 0 0 2px rgba(204,0,0,0.35); }
+    .controls .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .controls .btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      font-weight: 700;
+      padding: 10px 18px;
+      letter-spacing: 0.1em;
+    }
+    .controls .btn.primary:hover:not(:disabled) {
+      background: var(--accent-hot);
+      border-color: var(--accent-hot);
+    }
+    .controls .btn svg { width: 12px; height: 12px; }
+    .controls .step-label {
+      margin-left: auto;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      color: var(--text-faint);
+    }
+
+    /* Toggle classes — .hero is either "idle" (default) or "playing".
+     * Children marked .intro-only / .playing-only show conditionally. */
+    .hero .playing-only { display: none; }
+    .hero.playing .intro-only { display: none; }
+    .hero.playing .playing-only { display: block; }
+
     /* Desktop: two columns — dash on the left, text column on the
      * right. `min-width: 0` on both so neither pushes the grid open
      * when the dash's device bezel renders. */
     @media (min-width: 980px) {
       main {
-        grid-template-columns: minmax(0, 1fr) minmax(280px, 420px);
+        grid-template-columns: minmax(0, 1fr) minmax(320px, 440px);
         gap: 36px;
         padding: 24px 28px 32px;
       }
@@ -212,7 +283,15 @@
     @media (max-width: 979px) {
       .hero { text-align: center; }
       .hero-body { font-size: 13px; }
+      .controls { justify-content: center; }
     }
+
+    /* dash-sandbox internals we suppress when it's running in
+     * `controlled` mode. The component still renders these tags in
+     * its shadow-less markup; we hide them from the outside. */
+    dash-sandbox[controlled] .dsb-narration,
+    dash-sandbox[controlled] .dsb-controls,
+    dash-sandbox[controlled] .dsb-startup { display: none !important; }
 
     footer {
       margin-top: 28px;
@@ -248,20 +327,51 @@
   <main>
     <dash-sandbox
       id="sb"
+      controlled
       script="/tours/first-boot.json"
       wasm="/rdm7-sandbox.wasm"
     ></dash-sandbox>
 
-    <section class="hero">
-      <div class="hero-eyebrow">Guided Tour</div>
-      <h1>Your dash, in the browser.</h1>
-      <p class="hero-body">
-        The real RDM-7 firmware compiled to WebAssembly — first-run wizard, Device Settings,
-        widget editor, Wi-Fi manager, the lot.
-      </p>
-      <p class="hero-body">
-        Pick a tour on the right. <strong>Play</strong> to start; dots to scrub.
-      </p>
+    <section class="hero" id="hero">
+      <div class="hero-eyebrow" id="eyebrow">Guided Tour</div>
+      <h1 id="hero-title">Your dash, in the browser.</h1>
+
+      <div class="intro-only">
+        <p class="hero-body">
+          The real RDM-7 firmware compiled to WebAssembly — first-run wizard,
+          Device Settings, widget editor, Wi-Fi manager, the lot.
+        </p>
+        <p class="hero-body" id="hero-blurb">
+          Press <strong>Start Tour</strong> to begin, or pick a different one above.
+        </p>
+      </div>
+
+      <div class="playing-only">
+        <div class="caption-box" id="caption">Press Play to begin.</div>
+      </div>
+
+      <div class="controls" role="toolbar" aria-label="Tour transport">
+        <button class="btn primary intro-only" id="start-btn" disabled>
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 3l9 5-9 5V3z" fill="currentColor"/></svg>
+          Start Tour
+        </button>
+        <button class="btn intro-only" id="skip-btn" disabled>Skip</button>
+
+        <button class="btn playing-only" id="back-btn" title="Previous (←)" aria-label="Previous">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M11 3L4 8l7 5V3z" fill="currentColor"/><rect x="3" y="3" width="1.5" height="10" fill="currentColor"/></svg>
+        </button>
+        <button class="btn primary playing-only" id="play-btn" title="Play / Pause (Space)" aria-label="Play">
+          <svg viewBox="0 0 16 16" aria-hidden="true" id="play-icon"><path d="M4 3l9 5-9 5V3z" fill="currentColor"/></svg>
+          <span id="play-label">Play</span>
+        </button>
+        <button class="btn playing-only" id="next-btn" title="Next (→)" aria-label="Next">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3l7 5-7 5V3z" fill="currentColor"/><rect x="11.5" y="3" width="1.5" height="10" fill="currentColor"/></svg>
+        </button>
+        <button class="btn playing-only" id="restart-btn" title="Restart (R)" aria-label="Restart">
+          <svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3v4h4"/><path d="M2 7a6 6 0 1 1 1.7 4.2"/></svg>
+        </button>
+        <span class="step-label playing-only" id="step-label">—</span>
+      </div>
     </section>
   </main>
 
@@ -273,26 +383,95 @@
   <script type="module">
     import '/src/sandbox.ts';
 
+    const ICON_PLAY  = '<path d="M4 3l9 5-9 5V3z" fill="currentColor"/>';
+    const ICON_PAUSE = '<rect x="4" y="3" width="3" height="10" fill="currentColor"/><rect x="9" y="3" width="3" height="10" fill="currentColor"/>';
+
     (async () => {
       const manifest = await fetch('/tours/manifest.json').then(r => r.json());
-      const select = document.getElementById('tour-select');
-      const sb = document.getElementById('sb');
+      const select      = document.getElementById('tour-select');
+      const sb          = document.getElementById('sb');
+      const hero        = document.getElementById('hero');
+      const eyebrow     = document.getElementById('eyebrow');
+      const heroTitle   = document.getElementById('hero-title');
+      const captionEl   = document.getElementById('caption');
+      const startBtn    = document.getElementById('start-btn');
+      const skipBtn     = document.getElementById('skip-btn');
+      const playBtn     = document.getElementById('play-btn');
+      const playIcon    = document.getElementById('play-icon');
+      const playLabel   = document.getElementById('play-label');
+      const backBtn     = document.getElementById('back-btn');
+      const nextBtn     = document.getElementById('next-btn');
+      const restartBtn  = document.getElementById('restart-btn');
+      const stepLabel   = document.getElementById('step-label');
 
+      // Populate the tour picker.
       for (const t of manifest.tours) {
         const o = document.createElement('option');
         o.value = `/tours/${t.file}`;
         o.textContent = `${t.title} — ${t.durationSec}s`;
+        o.dataset.title = t.title;
         select.appendChild(o);
       }
 
+      const waitForReady = () => new Promise(r => {
+        if (sb.runner) return r();
+        sb.addEventListener('ready', () => r(), { once: true });
+      });
+
       select.addEventListener('change', async () => {
-        const waitForReady = () => new Promise(r => {
-          const check = () => (sb.runner ? r() : setTimeout(check, 50));
-          check();
-        });
         await waitForReady();
         await sb.setScript(select.value);
+        // New tour = reset to the idle intro state.
+        hero.classList.remove('playing');
+        heroTitle.textContent = select.selectedOptions[0].dataset.title;
+        captionEl.textContent = 'Press Play to begin.';
+        stepLabel.textContent = '—';
+        setPlayIcon(false);
       });
+
+      // Initial title matches the default tour so the eyebrow/title
+      // pair lines up with what will actually play.
+      await waitForReady();
+      heroTitle.textContent = sb.script?.title ?? 'Your dash, in the browser.';
+      startBtn.disabled = false;
+      skipBtn.disabled  = false;
+
+      // Bridge sandbox events to our right-column UI.
+      sb.addEventListener('caption', (e) => {
+        captionEl.textContent = e.detail || '';
+      });
+      sb.addEventListener('step', (e) => {
+        const total = sb.script?.steps.length ?? 0;
+        stepLabel.textContent = `${e.detail.index + 1} / ${total}`;
+      });
+      sb.addEventListener('playstate', (e) => setPlayIcon(e.detail.playing));
+      sb.addEventListener('end', () => {
+        setPlayIcon(false);
+        captionEl.textContent = 'Tour complete.';
+      });
+
+      function setPlayIcon(playing) {
+        playIcon.innerHTML = playing ? ICON_PAUSE : ICON_PLAY;
+        playLabel.textContent = playing ? 'Pause' : 'Play';
+        playBtn.setAttribute('aria-label', playing ? 'Pause' : 'Play');
+      }
+
+      startBtn.addEventListener('click', () => {
+        hero.classList.add('playing');
+        sb.start();
+      });
+      skipBtn.addEventListener('click', () => {
+        // Jump straight to the running dashboard — matches the old
+        // in-canvas Skip button behaviour.
+        hero.classList.add('playing');
+        sb.pause();
+        sb.mod?._sandbox_set_scene?.(6); // SCENE_DASHBOARD
+        captionEl.textContent = 'Skipped to the dashboard. Explore freely.';
+      });
+      playBtn.addEventListener('click', () => sb.start());
+      backBtn.addEventListener('click', () => sb.backStep());
+      nextBtn.addEventListener('click', () => sb.nextStep());
+      restartBtn.addEventListener('click', () => sb.restart());
     })();
   </script>
 </body>
