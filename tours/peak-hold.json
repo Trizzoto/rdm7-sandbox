@@ -1,0 +1,48 @@
+{
+  "id": "peak-hold",
+  "title": "Peak Hold — All-Time Highs",
+  "steps": [
+    {
+      "scene": "device_settings",
+      "scrollSection": "logging",
+      "voice": "Peak Hold tracks the all-time max and min of every registered signal silently in the background. There's no enable, no toggle, no setup — the firmware has done it from the moment it booted. View Peaks opens the live table.",
+      "highlight": { "x": 30, "y": 200, "w": 360, "h": 100 },
+      "wait": 5500
+    },
+    {
+      "scrollSection": "peaks",
+      "voice": "Open Peak Hold.",
+      "highlight": { "x": 30, "y": 230, "w": 360, "h": 50 },
+      "click": [200, 255],
+      "delay": 1200
+    },
+    {
+      "scene": "peaks",
+      "voice": "Live peak table. Every signal the dash sees gets one row — current, all-time min, all-time max — and the table refreshes about twice a second. The numbers stretch all the way back to whenever you last hit Reset, or to the last factory reset if you never have.",
+      "wait": 6500
+    },
+    {
+      "scene": "peaks",
+      "voice": "Watch the Max column on a session. Peak boost on a dyno run. Max coolant on a hot-soak after shutdown. Lowest battery voltage during cranking. The dash captures all of it whether or not a widget is bound to that signal — peak tracking lives in the signal layer, not the widget layer.",
+      "wait": 7500
+    },
+    {
+      "scene": "peaks",
+      "voice": "Reset All button up top wipes every peak and min back to the next sample's value. Useful at the start of a session — clear the lot, drive, then come back here to see the truth.",
+      "highlight": { "x": 580, "y": 30, "w": 200, "h": 40 },
+      "wait": 5500
+    },
+    {
+      "scene": "peaks",
+      "voice": "And this works alongside per-widget peak display. Any Panel widget has a Show Peak option in its config — Off, Max, Min, or Both — and renders a small secondary label under the main number. Watch peak boost while you drive, no scrolling required.",
+      "wait": 6500
+    },
+    {
+      "scene": "device_settings",
+      "scrollSection": "logging",
+      "voice": "Back to settings. Peak Hold pairs nicely with the data logger right next to it — log a session to SD, then check the live peaks here without ever opening the CSV. Two ways to look at the same drive.",
+      "highlight": { "x": 30, "y": 200, "w": 740, "h": 100 },
+      "wait": 5500
+    }
+  ]
+}

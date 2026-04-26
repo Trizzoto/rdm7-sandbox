@@ -4,42 +4,42 @@
   "steps": [
     {
       "scene": "dashboard",
-      "voice": "The default layout — every tile is bound to a CAN signal.",
-      "wait": 3000
+      "voice": "The default layout. Every tile is a widget bound to a CAN signal — thirteen widget types in total, all rebindable. Long-press any one to edit it; short-tap anywhere to summon the menu.",
+      "wait": 5500
     },
     {
-      "voice": "RPM bar up top. Fills with engine speed, flashes red past redline.",
+      "voice": "RPM Bar up top. Horizontal fill running zero to redline, with tick marks every thousand and the redline zone in red. One per layout — that's the limit. Always across the top so it's visible even when you're glancing for a tenth of a second.",
       "highlight": { "x": 0, "y": 0, "w": 800, "h": 50 },
-      "wait": 3800
+      "wait": 6500
     },
     {
-      "voice": "Turn indicators flank the big RPM number.",
+      "voice": "Turn-signal Indicators flank the big RPM number. Two slots per layout — left and right — bound to your blinker signals. They flash green when active. Same widget family as the warning lamps, just bigger and dedicated to the indicator stalks.",
       "highlight": { "x": 280, "y": 85, "w": 240, "h": 50 },
-      "wait": 3000
+      "wait": 6000
     },
     {
-      "voice": "Vehicle speed centre, gear below it.",
+      "voice": "Centre column — Vehicle Speed up top, Gear right below. Both are Text widgets — plain numeric readouts, custom font and decimals per widget. Big standalone digits work best for things you read at a glance: speed, gear, peak boost.",
       "highlight": { "x": 340, "y": 285, "w": 120, "h": 180 },
-      "wait": 3000
+      "wait": 6500
     },
     {
-      "voice": "Eight data panels flank the centre — fully rebindable.",
+      "voice": "Eight Panel widgets flank the centre — coolant, oil temp, oil pressure, lambda, intake, IAT, fuel pressure, voltage on the default layout. Each one is a coloured box with a label and a number; bind any signal, set thresholds, pick warning colours. Sixteen panels per layout is the hard cap.",
       "highlight": { "x": 5, "y": 165, "w": 330, "h": 210 },
-      "wait": 3500
+      "wait": 7500
     },
     {
-      "voice": "Coolant bar on the left, throttle on the right — both along the bottom.",
+      "voice": "Bottom row — Bar widgets. Coolant temp on the left bleeds blue to red as it climbs through the warning band; throttle on the right fills left-to-right. Two Bar widgets per layout — anything you can ramp linearly fits here, from fuel level to brake-pedal trace.",
       "highlight": { "x": 10, "y": 425, "w": 780, "h": 40 },
-      "wait": 3000
+      "wait": 7000
     },
     {
-      "voice": "Eight warning slots across the top — silent until a threshold trips.",
+      "voice": "Eight Warning slots run along the very top edge — silent until their threshold trips. Oil-pressure-low, knock count, check engine, anything you've defined alerts on. Single-frame visibility instead of a number you have to read; that's the Indicator's job too in a sense, but Warnings have named labels and persist until you acknowledge or the value clears.",
       "highlight": { "x": 20, "y": 80, "w": 760, "h": 25 },
-      "wait": 3800
+      "wait": 7500
     },
     {
-      "voice": "Tap any widget to edit it.",
-      "wait": 2200
+      "voice": "Long-press any widget — about half a second — to open its config modal. Three tabs: CAN Signal, Display, Alerts. Two-finger tap toggles night mode. Swipe from the left edge opens the peaks list. And a long-press on the RDM logo opens Device Settings. Three gestures, every screen.",
+      "wait": 7500
     }
   ]
 }

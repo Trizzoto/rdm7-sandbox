@@ -4,18 +4,18 @@
   "steps": [
     {
       "scene": "step1_done",
-      "voice": "Here's the fast tour. On first boot, RDM7 scans your CAN bus at four common bitrates and auto-picks the one your ECU is using. In this demo it found 500 kilobits.",
+      "voice": "Here's the fast tour. First boot — the dash auto-scans CAN at the four common bitrates (125, 250, 500, 1000 kbps) and locks on to whichever your ECU is using, usually within two to four seconds.",
       "highlight": { "x": 120, "y": 180, "w": 560, "h": 160 },
       "wait": 7500
     },
     {
-      "voice": "Tap Apply to lock in the detected bitrate.",
+      "voice": "Tap Apply to commit the matched bitrate.",
       "click": [400, 313],
       "delay": 1200
     },
     {
       "scene": "step2",
-      "voice": "Next, pick your ECU. Presets cover Haltech, Link ECU, MaxxECU, MegaSquirt, ECU Master, and Ford Falcon. Haltech Nexus / Elite is selected here.",
+      "voice": "Pick your ECU. Built-in presets: MaxxECU, Haltech Nexus / Elite, Link G4+, Ford BA / BF / FG, GM GEN IV LS, ECUMaster, MegaSquirt — plus Custom for hand-entered signals.",
       "highlight": { "x": 100, "y": 140, "w": 600, "h": 80 },
       "wait": 6500
     },

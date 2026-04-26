@@ -1,40 +1,40 @@
 {
   "id": "wifi-setup",
-  "title": "Wi-Fi & Connectivity",
+  "title": "Wi-Fi, Hotspot & OTA",
   "steps": [
     {
       "scene": "wifi_settings",
-      "voice": "Full Wi-Fi manager — same screen you can reach any time.",
-      "wait": 3000
+      "voice": "Full multi-SSID Wi-Fi manager. The dash runs station and AP modes concurrently — it can be on your home network and broadcasting its own hotspot at the same time, so you've always got a path in.",
+      "wait": 5000
     },
     {
-      "voice": "Status top-right: green connected, amber scanning, red trouble.",
+      "voice": "Status badge top-right. Green when connected, amber while it's scanning or negotiating, red on auth failure or signal trouble. The dot lives under Diagnostics → Wi-Fi too if you want a permanent watcher.",
       "highlight": { "x": 500, "y": 15, "w": 280, "h": 34 },
-      "wait": 3500
+      "wait": 5500
     },
     {
-      "voice": "Mode — Off, Client (join a network), or Hotspot (dash broadcasts its own).",
+      "voice": "Mode picker. Off kills both radios. Client joins one of your saved networks. Hotspot turns the dash itself into a Wi-Fi access point — your phone connects to it directly. Most setups want both — leave Mode on Client and the hotspot stays available alongside as a fallback.",
       "highlight": { "x": 20, "y": 60, "w": 350, "h": 110 },
-      "wait": 4500
+      "wait": 7000
     },
     {
-      "voice": "Start on Boot decides what mode comes up next power-on.",
+      "voice": "Start on Boot decides what runs at power-up. If your phone auto-joins the dash hotspot every time you fire the car (annoying), set this to Client only and the hotspot waits until you ask for it.",
       "highlight": { "x": 20, "y": 140, "w": 350, "h": 60 },
-      "wait": 3500
+      "wait": 5500
     },
     {
-      "voice": "Hotspot Password — minimum eight chars. Useful at the track.",
+      "voice": "Hotspot password — minimum eight characters. Defaults to rdm7dash, change it for the track. The hotspot SSID is the dash's MAC suffix — the last four hex digits — printed under the rear cover, so two RDM-7s on the same paddock don't clash.",
       "highlight": { "x": 20, "y": 205, "w": 350, "h": 60 },
-      "wait": 3800
+      "wait": 7000
     },
     {
-      "voice": "Scan refreshes the list. Tap a network to connect.",
+      "voice": "Networks panel. Up to five saved SSIDs — auto-join in priority order, and any out-of-range entries still show under SAVED so you know what the dash remembers. Forget per row, or tap any saved network to reconnect without retyping the password. Scan refreshes the list; the dash is 2.4-gigahertz only, so 5-gigahertz-only routers won't appear here.",
       "highlight": { "x": 400, "y": 60, "w": 380, "h": 380 },
-      "wait": 4000
+      "wait": 8000
     },
     {
-      "voice": "Connected IP appears under Network in Device Settings — that's your web editor URL.",
-      "wait": 4200
+      "voice": "Once you're on home Wi-Fi, the dash's IP shows up in Device Settings. Hit Show QR there for a 280-pixel QR code right on the screen — point your phone camera at it and Studio opens automatically. mDNS, rdm7-dot-local, is flaky on some consumer routers, so the QR is the reliable fallback.",
+      "wait": 7000
     }
   ]
 }

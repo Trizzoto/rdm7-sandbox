@@ -9063,6 +9063,7 @@ var _sandbox_set_pointer = Module['_sandbox_set_pointer'] = makeInvalidEarlyAcce
 var _sandbox_inject_signal = Module['_sandbox_inject_signal'] = makeInvalidEarlyAccess('_sandbox_inject_signal');
 var _main = Module['_main'] = makeInvalidEarlyAccess('_main');
 var _malloc = Module['_malloc'] = makeInvalidEarlyAccess('_malloc');
+var _sandbox_set_dashboard_frozen = Module['_sandbox_set_dashboard_frozen'] = makeInvalidEarlyAccess('_sandbox_set_dashboard_frozen');
 var _sandbox_set_scene = Module['_sandbox_set_scene'] = makeInvalidEarlyAccess('_sandbox_set_scene');
 var _sandbox_device_settings_scroll = Module['_sandbox_device_settings_scroll'] = makeInvalidEarlyAccess('_sandbox_device_settings_scroll');
 var _sandbox_open_widget_config = Module['_sandbox_open_widget_config'] = makeInvalidEarlyAccess('_sandbox_open_widget_config');
@@ -9093,6 +9094,7 @@ function assignWasmExports(wasmExports) {
   assert(typeof wasmExports['sandbox_inject_signal'] != 'undefined', 'missing Wasm export: sandbox_inject_signal');
   assert(typeof wasmExports['main'] != 'undefined', 'missing Wasm export: main');
   assert(typeof wasmExports['malloc'] != 'undefined', 'missing Wasm export: malloc');
+  assert(typeof wasmExports['sandbox_set_dashboard_frozen'] != 'undefined', 'missing Wasm export: sandbox_set_dashboard_frozen');
   assert(typeof wasmExports['sandbox_set_scene'] != 'undefined', 'missing Wasm export: sandbox_set_scene');
   assert(typeof wasmExports['sandbox_device_settings_scroll'] != 'undefined', 'missing Wasm export: sandbox_device_settings_scroll');
   assert(typeof wasmExports['sandbox_open_widget_config'] != 'undefined', 'missing Wasm export: sandbox_open_widget_config');
@@ -9119,6 +9121,7 @@ function assignWasmExports(wasmExports) {
   _sandbox_inject_signal = Module['_sandbox_inject_signal'] = createExportWrapper('sandbox_inject_signal', 2);
   _main = Module['_main'] = createExportWrapper('main', 2);
   _malloc = Module['_malloc'] = createExportWrapper('malloc', 1);
+  _sandbox_set_dashboard_frozen = Module['_sandbox_set_dashboard_frozen'] = createExportWrapper('sandbox_set_dashboard_frozen', 1);
   _sandbox_set_scene = Module['_sandbox_set_scene'] = createExportWrapper('sandbox_set_scene', 1);
   _sandbox_device_settings_scroll = Module['_sandbox_device_settings_scroll'] = createExportWrapper('sandbox_device_settings_scroll', 1);
   _sandbox_open_widget_config = Module['_sandbox_open_widget_config'] = createExportWrapper('sandbox_open_widget_config', 0);

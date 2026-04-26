@@ -266,6 +266,19 @@ void signal_inject_test_value(const char *name, float value)
     notify_subscribers(sig);
 }
 
+/* ── Force-all-stale (sandbox helper) ──────────────────────────────────── */
+
+void signal_mark_all_stale(void)
+{
+    if (!s_signals) return;
+    for (uint16_t i = 0; i < s_signal_count; i++) {
+        signal_t *sig = &s_signals[i];
+        if (sig->is_stale) continue;            /* already stale, skip notify */
+        sig->is_stale = true;
+        notify_subscribers(sig);
+    }
+}
+
 /* ── Timeout checking ───────────────────────────────────────────────────── */
 
 void signal_check_timeouts(uint64_t current_time_ms)

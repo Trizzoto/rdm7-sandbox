@@ -4,35 +4,40 @@
   "steps": [
     {
       "scene": "dashboard",
-      "voice": "Tap any widget to edit its signal, label, colours or thresholds.",
+      "voice": "Long-press any widget on the dashboard — about half a second — and its config modal pops open. No menu hunting, no separate edit mode. Same gesture works on every widget type the dash supports: panels, bars, meters, indicators, RPM bars, the lot.",
       "highlight": { "x": 170, "y": 270, "w": 165, "h": 100 },
-      "wait": 3800
+      "wait": 5000
     },
     {
       "scene": "widget_config",
-      "voice": "The config modal. Three tabs: Data, Presets, Alerts.",
+      "voice": "Three tabs across the top — CAN Signal, Display, and Alerts. Everything you can change about this one widget lives behind those three.",
       "highlight": { "x": 105, "y": 76, "w": 590, "h": 36 },
-      "wait": 3800
-    },
-    {
-      "voice": "Data tab — Display section sets the label and decimals.",
-      "highlight": { "x": 110, "y": 112, "w": 580, "h": 130 },
       "wait": 4000
     },
     {
-      "voice": "Data Source picks the CAN signal. 14 defaults, more with your ECU preset.",
+      "voice": "Display tab first — the easy stuff. Label text, font family, decimal places, unit suffix, colours, and any widget-specific knobs like a redline value on the RPM bar. Editing here doesn't touch the CAN side at all, so you can rename or recolour without breaking the data binding.",
+      "highlight": { "x": 110, "y": 112, "w": 580, "h": 130 },
+      "wait": 6000
+    },
+    {
+      "voice": "Data Source picker — this is where the widget gets bound to a CAN signal. Pick from the ECU preset dropdowns: brand, then version, then channel. Haltech Nexus has the full Elite stream; MaxxECU v1.3 has 100-plus channels; Ford BA / BF / FG covers the core powertrain. Hit Apply and the widget starts updating with live data.",
       "highlight": { "x": 110, "y": 252, "w": 580, "h": 120 },
-      "wait": 4500
+      "wait": 7000
     },
     {
-      "voice": "Expand CAN Bus Settings for a custom signal — CAN ID, bit position, scale, offset.",
+      "voice": "ECU not in the presets? Expand CAN Bus Settings and enter the signal by hand — CAN ID in hex, bit start (zero to sixty-three), bit length, scale, offset, and endianness. The displayed value is just raw times scale plus offset. If a value reads sixteen-thousand instead of sixty-four, you've almost certainly got endianness flipped — toggle Intel to Motorola and it'll snap right.",
       "highlight": { "x": 110, "y": 370, "w": 580, "h": 60 },
-      "wait": 4500
+      "wait": 8000
     },
     {
-      "voice": "Cancel drops changes. Save writes to flash and reloads the layout.",
+      "voice": "Alerts tab covers the warning thresholds — set a low and high band per signal, pick the alert colour. The widget flashes when the value crosses either threshold, and the same trigger can fire a warning lamp anywhere on the layout.",
+      "highlight": { "x": 105, "y": 76, "w": 590, "h": 36 },
+      "wait": 5000
+    },
+    {
+      "voice": "Cancel discards everything. Save writes to LittleFS and reloads the layout in-place — about a one-second debounce, so the dash never feels frozen while you tweak.",
       "highlight": { "x": 105, "y": 408, "w": 590, "h": 52 },
-      "wait": 3800
+      "wait": 4500
     }
   ]
 }

@@ -1,0 +1,42 @@
+{
+  "id": "custom-can-signals",
+  "title": "Custom CAN Signals",
+  "steps": [
+    {
+      "scene": "dashboard",
+      "voice": "Most of the time you don't need this — pick your ECU from the wizard's preset list and the dash decodes everything for you. But if you're on a custom protocol, an OEM ECU not yet in the presets, or you want to add a sensor outside the standard set, every widget can be wired up by hand. Long-press any widget to start.",
+      "wait": 7000
+    },
+    {
+      "scene": "widget_config",
+      "voice": "Config modal. Open the CAN Signal tab — that's where the manual fields live. Underneath the preset picker there's an Expand CAN Bus Settings panel; everything below is what the firmware actually decodes a signal with.",
+      "highlight": { "x": 105, "y": 76, "w": 590, "h": 36 },
+      "wait": 7000
+    },
+    {
+      "voice": "CAN ID. Which message on the bus to listen on. Hex or decimal — the dash accepts both, so 0x218 and 536 are the same address. Your ECU manual lists these. If you don't know, a CAN sniffer like SavvyCAN with a USB-CAN adapter can log raw traffic and tell you which IDs your ECU is broadcasting.",
+      "highlight": { "x": 110, "y": 252, "w": 580, "h": 50 },
+      "wait": 8500
+    },
+    {
+      "voice": "Bit Start and Bit Length. A CAN message is just eight bytes of data — sixty-four bits — and your signal is a specific field packed somewhere inside them. Bit Start says where the field begins, zero through sixty-three. Bit Length says how wide it is. Sixteen bits is a common width for things like RPM or coolant temperature.",
+      "highlight": { "x": 110, "y": 302, "w": 580, "h": 50 },
+      "wait": 9000
+    },
+    {
+      "voice": "Endianness. Intel is little-endian, Motorola is big-endian. ECU vendors don't agree, and this is the single most common reason a value reads wild — sixteen-thousand instead of sixty-four, or bouncing negative when it shouldn't. Nine times out of ten, just flipping this fixes it. Worth trying first before you doubt the rest of the params.",
+      "highlight": { "x": 110, "y": 352, "w": 580, "h": 50 },
+      "wait": 9000
+    },
+    {
+      "voice": "Scale and Offset. The decoded value is just raw times scale plus offset — a linear transform. RPM packed as a sixteen-bit integer often comes through with scale zero-point-twenty-five, no offset. Coolant temp typically scales by one with an offset of minus forty so the dash reads degrees Celsius directly. Whatever your ECU manual says, copy it in literally.",
+      "highlight": { "x": 110, "y": 402, "w": 580, "h": 50 },
+      "wait": 9500
+    },
+    {
+      "voice": "Save and the layout reloads with the new signal bound. If you want to skip the hand-entry entirely, Studio's DBC Import takes a vendor-supplied dot-d-b-c file and converts the whole thing into RDM signals in one shot — find it in the hamburger menu inside Studio. The Marketplace also hosts community-contributed signal packs, so someone may have already done the work for your car.",
+      "highlight": { "x": 105, "y": 408, "w": 590, "h": 52 },
+      "wait": 9000
+    }
+  ]
+}

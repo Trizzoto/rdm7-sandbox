@@ -1,34 +1,46 @@
 {
   "id": "display-settings",
-  "title": "Display: Brightness & Dimmer",
+  "title": "Display: Brightness, Dimmer & Night Mode",
   "steps": [
     {
       "scene": "device_settings",
       "scrollSection": "display",
-      "voice": "The Display card — brightness control and dimmer binding.",
-      "wait": 3000
+      "voice": "The Display card. Three things live here — brightness, an optional CAN-driven dimmer, and Night Mode for after-dark driving.",
+      "wait": 4000
     },
     {
-      "voice": "Brightness slider, 5 to 100 percent. Drives the backlight on device; dims the canvas here in the sandbox.",
+      "voice": "Brightness slider. Five to one hundred percent, with a live preview as you drag — the canvas dims as you slide so you can pick a value that's right for your eyes, not your ECU's spec sheet. The choice persists in NVS, so it survives every power cycle.",
       "scrollSection": "display",
       "highlight": { "x": 405, "y": 100, "w": 370, "h": 50 },
-      "wait": 5000
+      "wait": 6500
     },
     {
-      "voice": "Dimmer Switch Config — bind brightness to a CAN signal like your headlights.",
+      "voice": "CAN Dimmer Switch. Bind brightness to any signal you've got — the headlight bus is the obvious one. When the signal goes high, the backlight drops to your chosen low-light level automatically; goes low, brightness pops back up. No timers, no light sensors required.",
       "scrollSection": "display",
       "highlight": { "x": 405, "y": 155, "w": 370, "h": 40 },
-      "wait": 4200
+      "wait": 6500
     },
     {
       "scrollSection": "display",
-      "voice": "Pick a signal, set a threshold, and the dash drops to your chosen dim level automatically.",
+      "voice": "Pick the signal, set a threshold, set the dim percent. That's the whole config — three lines of setup for an automatic night response that follows your headlight switch.",
       "highlight": { "x": 405, "y": 155, "w": 370, "h": 40 },
-      "wait": 4500
+      "wait": 5500
     },
     {
-      "voice": "Brightness setting persists in NVS — survives power cycles.",
-      "wait": 2800
+      "scrollSection": "display",
+      "voice": "Night Mode is a separate thing — it doesn't just dim, it swaps the entire colour palette to warm reds and dimmer surfaces so nothing on the dash glares at 2 AM. Trigger it three ways: tap the Night toggle right here, two-finger tap the dashboard from anywhere, or bind it to a CAN signal exactly like the dimmer.",
+      "highlight": { "x": 405, "y": 200, "w": 370, "h": 40 },
+      "wait": 7000
+    },
+    {
+      "scrollSection": "display",
+      "voice": "Per-widget overrides. Any widget can specify its own night colours — expand its Night Mode block in the inspector and pick whichever fields you want different. Leave a field blank and the widget keeps its day colour. Useful for warning lamps that should stay loud even at night.",
+      "highlight": { "x": 405, "y": 200, "w": 370, "h": 40 },
+      "wait": 6500
+    },
+    {
+      "voice": "All three settings — brightness, CAN dimmer config, Night Mode — persist in NVS. Survives reboots, OTA updates, even the dual-slot rollback if a firmware update goes sideways.",
+      "wait": 4000
     }
   ]
 }

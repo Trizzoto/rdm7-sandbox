@@ -151,6 +151,16 @@ void signal_check_timeouts(uint64_t current_time_ms);
  */
 void signal_inject_test_value(const char *name, float value);
 
+/**
+ * Force every registered signal into the "stale" state immediately
+ * and notify subscribers. Used by the WASM sandbox so that freezing
+ * the dashboard sim instantly drops every gauge to the "no signal"
+ * placeholder ("---") instead of waiting on the 2s timeout (which
+ * also requires signal_check_timeouts to be wired up — it isn't in
+ * the sandbox build).
+ */
+void signal_mark_all_stale(void);
+
 /* ── Peak/min tracking ────────────────────────────────────────────────── */
 
 /** Reset peak and min values for all signals. */

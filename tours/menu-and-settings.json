@@ -4,24 +4,24 @@
   "steps": [
     {
       "scene": "dashboard",
-      "voice": "Short tap on the screen reveals the Menu button.",
+      "voice": "A short tap anywhere on the dashboard reveals the menu pill in the top-right. The dash is touch-only by design — no buttons to memorise.",
       "click": [400, 240],
       "delay": 500
     },
     {
       "scene": "dashboard_menu",
-      "voice": "Top right. Tap it.",
+      "voice": "There it is — top right corner. Tap to open the setup menu, or just long-press the RDM logo from the home screen for the same shortcut.",
       "highlight": { "x": 680, "y": 8, "w": 112, "h": 44 },
       "click": [738, 30],
       "delay": 1000
     },
     {
       "scene": "setup_menu",
-      "voice": "Three things: Layout picker, Splash, and Device Settings.",
-      "wait": 2800
+      "voice": "Three actions: Layout picker for switching between saved dashboards, Splash for boot-screen tweaks, and Device Settings for everything else. Up to sixteen layouts are stored on the dash, and the last one you saved loads automatically on power-up.",
+      "wait": 4500
     },
     {
-      "voice": "Device Settings.",
+      "voice": "Open Device Settings.",
       "highlight": { "x": 244, "y": 330, "w": 312, "h": 40 },
       "click": [400, 348],
       "delay": 1000
@@ -29,48 +29,48 @@
     {
       "scene": "device_settings",
       "scrollSection": "top",
-      "voice": "CAN Bus — bitrate and ECU preset.",
+      "voice": "CAN Bus card. Set the bitrate to match your ECU — 125, 250, 500 or 1000 kilobits — or hit Re-run Auto-Scan and let the dash try them all again. TX and RX frame counters tick alongside so you can see traffic instantly.",
       "highlight": { "x": 30, "y": 80, "w": 370, "h": 160 },
-      "wait": 3500
+      "wait": 5500
     },
     {
-      "voice": "Device Info — serial, firmware, MAC.",
+      "voice": "Device Info card. Serial number for warranty support, firmware version (currently v1.1.1), MAC address — and the last four hex digits of that MAC are also the suffix on your hotspot SSID, so this is where you go when you've got two RDM-7s in the garage.",
       "scrollSection": "top",
       "highlight": { "x": 400, "y": 80, "w": 370, "h": 160 },
-      "wait": 3000
+      "wait": 5500
     },
     {
       "scrollSection": "network",
-      "voice": "Network — Wi-Fi, hotspot, QR, updates.",
+      "voice": "Network. Up to five Wi-Fi networks saved with priority by save-order; the dashboard auto-joins whichever's in range. Hotspot is always available alongside as a fallback. Show QR pops a 280-pixel QR code straight onto the screen — point your phone camera at it and Studio opens directly.",
       "highlight": { "x": 30, "y": 80, "w": 370, "h": 240 },
-      "wait": 3500
+      "wait": 6000
     },
     {
       "scrollSection": "display",
-      "voice": "Display — brightness slider and dimmer-switch binding.",
+      "voice": "Display. Brightness slider runs five to a hundred percent with a live preview. Below it, CAN Dimmer lets you bind brightness to a signal — the headlight bus is the obvious choice, so the dash dims when the lights come on. Night Mode flips the whole layout to a warmer, dimmer palette that doesn't blind you at 2 AM; trigger it manually here, with a two-finger tap on the dash, or auto-bind to the same headlight signal.",
       "highlight": { "x": 400, "y": 80, "w": 370, "h": 240 },
-      "wait": 3500
+      "wait": 7500
     },
     {
       "scrollSection": "logging",
-      "voice": "Logging, Peak Hold, and Testing — session tools.",
+      "voice": "Session tools. Data Logging streams every signal to an SD-card CSV at one to two-hundred Hertz, or Max which gets you 70 to 200 Hertz depending on bus load. Peak Hold silently tracks the all-time max and min for every signal — no enable needed. And Testing covers the simulator for bench work plus the signal replayer that pumps a recorded log back through the dash as if it were live CAN.",
       "highlight": { "x": 30, "y": 80, "w": 740, "h": 100 },
-      "wait": 3800
+      "wait": 7500
     },
     {
       "scrollSection": "can_diag",
-      "voice": "CAN diagnostics — live health and a Bus Scan button.",
+      "voice": "CAN diagnostics. Live RX and TX counts, error counters, and the bus-state indicator — first place to look if widgets show dashes instead of values. Hit Bus Scan to rerun the bitrate auto-detect from this screen without going back through the wizard.",
       "highlight": { "x": 30, "y": 80, "w": 740, "h": 160 },
-      "wait": 4000
+      "wait": 6000
     },
     {
       "scrollSection": "footer",
-      "voice": "Diagnostics, Rerun Wizard, and Factory Reset.",
+      "voice": "Footer trio. System Diagnostics opens the five-card health screen — the same one we built up at the bottom of this page. Re-run First-Run Wizard wipes CAN and ECU choices and walks you through setup again. Factory Reset wipes everything — layouts, signals, network — and ships the dash back to brand-new.",
       "highlight": { "x": 30, "y": 100, "w": 740, "h": 130 },
-      "wait": 3800
+      "wait": 6500
     },
     {
-      "voice": "Close returns to the dashboard.",
+      "voice": "Close button up top sends you back to your live dashboard. Every change you made here is already persisted to flash — there's no save step.",
       "scrollSection": "top",
       "highlight": { "x": 700, "y": 28, "w": 80, "h": 36 },
       "click": [740, 42],
@@ -78,8 +78,8 @@
     },
     {
       "scene": "dashboard",
-      "voice": "Done.",
-      "wait": 1800
+      "voice": "And you're back on the road.",
+      "wait": 2200
     }
   ]
 }

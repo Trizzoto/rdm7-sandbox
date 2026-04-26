@@ -20,8 +20,14 @@
 
 import type { Highlight } from './tour-types.js';
 
-const ACCENT = '#2d8ceb';
-const RADIUS = '4px';
+/* Amber highlight matched to Claude Design's RDM-7 Sandbox - C bundle.
+ * The design's `dashc-gauge.is-hl` style uses #F2C14E with a soft outer
+ * halo. We pad the rectangle slightly so the glow reads as a deliberate
+ * "spotlight on this widget" rather than a tight outline that just hugs
+ * the pixel bounds. */
+const ACCENT     = '#F2C14E';
+const RADIUS     = '6px';
+const PAD_PX     = 10;     // visual breathing room around the target rect
 
 export class HighlightOverlay {
   private box: HTMLDivElement;
@@ -32,14 +38,15 @@ export class HighlightOverlay {
     this.box.setAttribute('class', 'dash-sandbox-highlight');
     Object.assign(this.box.style, {
       position:        'absolute',
-      border:          `1px solid rgba(45, 140, 235, 0.55)`,
+      border:          `2px solid ${ACCENT}`,
       borderRadius:    RADIUS,
       background:      'transparent',
-      /* Thin outer ring + a soft accent halo, no pulsing. Reads
-       * clean and premium rather than "click here now!" arcade. */
-      boxShadow:       `0 0 0 1px rgba(45, 140, 235, 0.15), ` +
-                       `0 0 18px 3px rgba(45, 140, 235, 0.35), ` +
-                       `0 0 0 4px rgba(45, 140, 235, 0.08)`,
+      /* Layered halo: a 2px inner ring for crisp definition, then a
+       * fat 56px soft glow, then a wider faint diffusion that hints
+       * "look here" without overpowering the underlying widget. */
+      boxShadow:       `0 0 0 2px ${ACCENT}, ` +
+                       `0 0 56px -2px rgba(242, 193, 78, 0.65), ` +
+                       `0 0 0 10px rgba(242, 193, 78, 0.10)`,
       pointerEvents:   'none',
       display:         'none',
       zIndex:          '5',
@@ -50,9 +57,8 @@ export class HighlightOverlay {
       transition:      'opacity .15s ease',
     });
 
-    /* Accent-tinted corner brackets add a subtle "target reticle"
-     * feel without requiring a second DOM node per bracket. All
-     * four painted in one go via conic + linear gradients. */
+    /* Amber corner brackets — subtle reticle that reinforces the
+     * spotlight without overpowering the underlying widget. */
     this.box.innerHTML = `
       <span style="position:absolute;top:-1px;left:-1px;width:14px;height:14px;
         border-top:2px solid ${ACCENT};border-left:2px solid ${ACCENT};
@@ -83,13 +89,14 @@ export class HighlightOverlay {
     const rootRect   = this.root.getBoundingClientRect();
 
     // Map device pixels → CSS pixels, offset by the canvas's
-    // position within the root.
+    // position within the root, then expand by PAD_PX on every side
+    // so the glow has breathing room around the target widget.
     const sx = canvasRect.width  / 800;
     const sy = canvasRect.height / 480;
-    const x  = (canvasRect.left - rootRect.left) + h.x * sx;
-    const y  = (canvasRect.top  - rootRect.top ) + h.y * sy;
-    const w  = h.w * sx;
-    const ht = h.h * sy;
+    const x  = (canvasRect.left - rootRect.left) + h.x * sx - PAD_PX;
+    const y  = (canvasRect.top  - rootRect.top ) + h.y * sy - PAD_PX;
+    const w  = h.w * sx + PAD_PX * 2;
+    const ht = h.h * sy + PAD_PX * 2;
 
     this.box.style.left    = `${x}px`;
     this.box.style.top     = `${y}px`;

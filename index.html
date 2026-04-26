@@ -5,477 +5,2071 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RDM-7 Sandbox — Guided Tour</title>
 
-  <!-- Studio design system: Sora for UI, JetBrains Mono for status/code.
-       Matches the fonts used on studio.realtimedatamonitoring.com.au
-       so embeds feel native. -->
+  <!-- Studio typography:
+         Sora — UI + headlines (matches studio.realtimedatamonitoring.com.au)
+         JetBrains Mono — eyebrows, status, data
+       Sora has no italics, so emphasis uses weight 700 + accent colour
+       instead of an oblique cut. -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
 
   <style>
-    /* Light-mode page palette: light-grey surfaces, dark-grey
-     * interactive elements, Studio brand red for accents. Flat
-     * header — no backdrop blur, just a solid bar with a border.
-     * Typography inherited from Studio (Sora + JetBrains Mono). */
+    /* ─── Editorial palette ────────────────────────────────────── */
     :root {
       color-scheme: light;
-      --bg:         #e8e8e8;
-      --surface:    #f5f5f5;
-      --panel:      #f0f0f0;
-      --border:     #d0d0d0;
-      --border-2:   #b8b8b8;
-      --text:       #1a1a1a;
-      --text-dim:   #595959;
-      --text-faint: #8a8a8a;
-      --btn-bg:     #393939;
-      --btn-bg-2:   #4a4a4a;
-      --btn-text:   #f5f5f5;
-      --accent:     #cc0000;
-      --accent-hot: #ff1a1a;
-    }
-    * { box-sizing: border-box; }
-    html, body { height: 100%; margin: 0; }
-    body {
-      min-height: 100vh;
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Sora', ui-sans-serif, system-ui, -apple-system, sans-serif;
-      font-weight: 400;
-      font-size: 15px;
-      line-height: 1.6;
-      position: relative;
-      overflow-x: hidden;
+      --paper:       #FAF7F2;
+      --paper-2:     #F2EEE6;
+      --rule:        #E4DED2;
+      --rule-strong: #1A1A1A;
+      --ink:         #1A1A1A;
+      --ink-2:       #4A4A47;
+      --ink-3:       #7A7874;
+      --accent:      #C8322A;
+      --accent-ink:  #8A1F18;
+      --signal:      #2E7D4F;
+      --hl:          #F2C14E;
+
+      --topbar-h:       52px;
+      --rail-w:         56px;     /* collapsed sidebar width */
+      --rail-expanded:  240px;
+      --read-pad-x:     clamp(28px, 4vw, 64px);
+      --read-pad-t:     36px;
+      --read-pad-b:     96px;
     }
 
-    /* Flat header — solid surface, thin divider, no blur. */
-    .nav {
-      position: sticky; top: 0; z-index: 50;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      min-height: 60px;
-      display: flex; align-items: center;
-      padding: 0 24px;
-      gap: 20px;
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; height: 100%; }
+    /* Lock the viewport — only .read scrolls. */
+    html, body { overflow: hidden; }
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: 'Sora', ui-sans-serif, system-ui, sans-serif;
+      font-size: 14.5px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
     }
-    .nav-brand {
-      display: flex; align-items: baseline; gap: 10px;
+
+    .serif { font-family: 'Sora', ui-sans-serif, system-ui, sans-serif; font-weight: 500; letter-spacing: -0.012em; }
+    .mono  { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    .eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--ink-3);
+    }
+
+    /* ─── Top bar ──────────────────────────────────────────────── */
+    .topbar {
+      grid-column: 1 / -1;
+      height: var(--topbar-h);
+      border-bottom: 1px solid var(--rule);
+      display: grid;
+      grid-template-columns: var(--rail-w) auto 1fr auto;
+      align-items: center;
+      background: var(--paper);
+      min-width: 0;
+    }
+    .brand {
+      padding: 0 14px;
+      border-right: 1px solid var(--rule);
+      height: 100%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .brand-mark {
+      width: 28px; height: 28px;
+      border: 1.5px solid var(--ink);
+      border-radius: 4px;
+      display: grid; place-items: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .topbar-title {
+      padding: 0 18px;
+      display: flex; align-items: baseline; gap: 8px;
+      min-width: 0;
+    }
+    .topbar-title .name {
+      font-family: 'Sora', ui-sans-serif, system-ui, sans-serif;
+      font-weight: 600;
+      font-size: 16px;
+      letter-spacing: -0.01em;
+    }
+    .topbar-title .sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5px;
+      color: var(--ink-3);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+    .topbar-mid { min-width: 0; }
+    .topbar-right {
+      display: flex; align-items: center; gap: 14px;
+      padding: 0 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--ink-2);
+      min-width: 0;
+    }
+    .topbar-right a { color: var(--ink-2); text-decoration: none; }
+    .topbar-right a:hover { color: var(--ink); }
+    @media (max-width: 880px) {
+      .topbar-right .nav-link { display: none; }
+    }
+
+    .tour-pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 5px 8px 5px 12px;
+      background: white;
+      font-size: 12.5px;
+      cursor: pointer;
+      position: relative;
+      max-width: 280px;
+    }
+    .tour-pill-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--ink-3);
       flex-shrink: 0;
     }
-    .nav-brand .mark {
-      font-family: 'JetBrains Mono', ui-monospace, monospace;
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.28em;
-      color: var(--text);
-    }
-    .nav-brand .sep {
-      color: var(--accent);
-      font-weight: 800;
-    }
-    .nav-brand .sub {
-      font-family: 'Sora', sans-serif;
-      font-size: 12px;
-      font-weight: 400;
-      letter-spacing: 0;
-      color: var(--text-dim);
-    }
-    .nav-right {
-      margin-left: auto;
-      display: flex; align-items: center; gap: 20px;
-      font-family: 'JetBrains Mono', ui-monospace, monospace;
-      font-size: 11px;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--text-dim);
-    }
-    .nav-right a {
-      color: var(--text-dim);
-      text-decoration: none;
-      transition: color .15s;
-    }
-    .nav-right a:hover { color: var(--text); }
-
-    @media (max-width: 720px) {
-      .nav { padding: 0 16px; gap: 12px; }
-      .nav-brand .sub { display: none; }
-      .nav-right { gap: 12px; }
-      .nav-link { display: none; }
-    }
-    @media (max-width: 540px) {
-      .tour-picker-label { display: none; }
-      .nav-brand .mark { letter-spacing: 0.2em; font-size: 12px; }
-    }
-
-    /* Tour picker = dark-grey pill on the light bar, matches the
-     * Studio's own toolbar cells. */
-    .tour-picker {
-      display: inline-flex; align-items: center; gap: 10px;
-    }
-    .tour-picker-label {
-      font-family: 'JetBrains Mono', ui-monospace, monospace;
-      font-size: 10px; letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--text-dim);
-    }
-    .tour-picker select {
-      background: var(--btn-bg);
-      border: 1px solid var(--btn-bg);
-      color: var(--btn-text);
-      border-radius: 2px;
-      padding: 6px 28px 6px 10px;
-      font-family: inherit;
-      font-size: 13px;
+    .tour-pill select {
+      appearance: none; -webkit-appearance: none;
+      background: transparent; border: 0; outline: 0;
+      font-family: 'Sora', ui-sans-serif, system-ui, sans-serif;
+      font-weight: 500;
+      font-size: 12.5px;
+      color: var(--ink);
+      padding: 0 14px 0 0;
       cursor: pointer;
-      appearance: none;
-      background-image:
-        linear-gradient(45deg, transparent 50%, var(--btn-text) 50%),
-        linear-gradient(135deg, var(--btn-text) 50%, transparent 50%);
-      background-position: calc(100% - 14px) 50%, calc(100% - 9px) 50%;
-      background-size: 5px 5px;
-      background-repeat: no-repeat;
-      transition: background-color .15s;
+      max-width: 200px;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
     }
-    .tour-picker select:hover  { background-color: var(--btn-bg-2); }
-    .tour-picker select:focus  { outline: none; box-shadow: 0 0 0 2px rgba(204, 0, 0, 0.35); }
+    .tour-pill::after {
+      content: '▾';
+      position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+      color: var(--ink-3); font-size: 9px; pointer-events: none;
+    }
 
-    /* Layout philosophy: dash-first, side-by-side on desktop, stacked
-     * on mobile. The whole experience must fit above the fold on a
-     * standard 1080p browser viewport. Dash sized comfortably (~640px
-     * on desktop, full-width on mobile) so it never feels cramped. */
-    main {
-      padding: 16px 28px 24px;
-      max-width: 1200px; margin: 0 auto;
+    /* ─── Shell layout ─────────────────────────────────────────── */
+    .shell {
       display: grid;
-      grid-template-columns: minmax(0, 1fr);
-      gap: 20px;
+      grid-template-columns: var(--rail-w) minmax(0, 1fr);
+      grid-template-rows: var(--topbar-h) 1fr;
+      height: 100vh;
+      width: 100vw;
+      min-width: 0;
+    }
+
+    /* ─── Sidebar — collapsed icon rail; hover to expand ──────── */
+    .sidenav {
+      border-right: 1px solid var(--rule);
+      width: var(--rail-w);
+      height: calc(100vh - var(--topbar-h));
+      overflow: visible;
+      position: relative;
+      z-index: 20;
+      background: var(--paper);
+      transition: width 220ms ease;
+    }
+    .sidenav-inner {
+      width: var(--rail-w);
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 12px 0 24px;
+      transition: width 220ms ease;
+      background: var(--paper);
+      border-right: 1px solid transparent;
+    }
+    .sidenav.is-open .sidenav-inner {
+      width: var(--rail-expanded);
+      box-shadow: 6px 0 24px -10px rgba(0,0,0,0.18);
+      border-right: 1px solid var(--rule);
+    }
+    .sidenav-inner::-webkit-scrollbar { width: 6px; }
+    .sidenav-inner::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 6px; }
+
+    .sidenav-section { padding: 12px 0 4px; }
+    .sidenav-section-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--ink-3);
+      padding: 0 18px;
+      margin-bottom: 8px;
+      display: flex; align-items: center; gap: 10px;
+      opacity: 0;
+      white-space: nowrap;
+      transition: opacity 180ms;
+    }
+    .sidenav-section-title::before {
+      content: ''; width: 14px; height: 1px; background: var(--ink-3);
+    }
+    .sidenav.is-open .sidenav-section-title { opacity: 1; }
+
+    .sidenav-item {
+      display: grid;
+      grid-template-columns: var(--rail-w) 1fr auto;
       align-items: center;
+      width: var(--rail-expanded);
+      padding: 0;
+      color: var(--ink-2);
+      cursor: pointer;
+      border: 0; background: none;
+      text-align: left;
+      font: inherit;
+      font-size: 12.5px;
+      border-left: 2px solid transparent;
+      margin-left: -2px;
+      height: 36px;
+      transition: color 140ms, background 140ms;
     }
-    /* Sizes the dash-sandbox custom element. Internally it caps at
-     * 860 px; we pin it tighter so desktop has room for the text
-     * column alongside, and mobile doesn't waste space on bezels. */
-    dash-sandbox {
-      display: block;
-      width: 100%;
-      max-width: 640px;
-      margin: 0 auto;
+    .sidenav-item:hover { color: var(--ink); }
+    .sidenav-item.is-active {
+      color: var(--ink);
+      border-left-color: var(--accent);
+      font-weight: 500;
+      background: linear-gradient(90deg, rgba(200,50,42,0.06), transparent);
     }
-    .hero {
-      max-width: 520px;
-      margin: 0 auto;
+    .sidenav-item-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--ink-3);
+      text-align: center;
+      width: var(--rail-w);
     }
-    .hero-eyebrow {
-      font-family: 'JetBrains Mono', ui-monospace, monospace;
+    .sidenav-item.is-active .sidenav-item-num { color: var(--accent); font-weight: 700; }
+    .sidenav-item-title {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      padding-right: 8px;
+      opacity: 0;
+      transition: opacity 180ms;
+    }
+    .sidenav-item-dur {
+      font-family: 'JetBrains Mono', monospace;
       font-size: 10px;
-      letter-spacing: 0.28em;
-      text-transform: uppercase;
-      color: var(--accent);
-      font-weight: 700;
-      margin-bottom: 10px;
+      color: var(--ink-3);
+      padding-right: 18px;
+      opacity: 0;
+      transition: opacity 180ms;
     }
-    h1 {
-      margin: 0 0 12px;
-      font-size: clamp(1.4rem, 2vw, 1.8rem);
-      font-weight: 700;
-      letter-spacing: -0.015em;
-      line-height: 1.2;
-    }
-    .hero-body {
-      margin: 0;
-      color: var(--text-dim);
-      font-weight: 400;
-      font-size: 14px;
-      line-height: 1.55;
-    }
-    .hero-body strong { color: var(--text); font-weight: 600; }
-    .hero-body + .hero-body { margin-top: 10px; }
+    .sidenav.is-open .sidenav-item-title,
+    .sidenav.is-open .sidenav-item-dur { opacity: 1; }
 
-    /* Caption during active tour — replaces the intro prose in place.
-     * Subtle tint + left accent stripe to signal "this is narration,
-     * not static copy". */
-    .caption-box {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-left: 3px solid var(--accent);
-      border-radius: 4px;
-      padding: 14px 16px;
+    /* small chevron at the very top to suggest "click to expand" */
+    .sidenav-toggle {
+      width: var(--rail-w);
+      height: 30px;
+      display: grid; place-items: center;
+      color: var(--ink-3);
       font-size: 14px;
-      line-height: 1.55;
-      color: var(--text);
-      min-height: 84px;
-      transition: opacity 0.25s ease;
+      cursor: pointer;
+      border: 0; background: none;
+      transition: color 140ms;
+    }
+    .sidenav-toggle:hover { color: var(--ink); }
+    .sidenav.is-open .sidenav-toggle { color: var(--ink); }
+
+    /* Tooltip over collapsed icons */
+    .sidenav-item[data-tip]:not(.is-open *)::after {
+      content: attr(data-tip);
+      position: absolute;
+      left: calc(var(--rail-w) + 6px);
+      background: var(--ink);
+      color: var(--paper);
+      font-family: 'Sora', ui-sans-serif, sans-serif;
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 3px;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateX(-4px);
+      transition: opacity 140ms, transform 140ms;
+    }
+    /* Tooltip only when fully collapsed (no chevron-pinned, no hover-expand). */
+    .sidenav:not(.is-open):not(.is-hover) .sidenav-item:hover::after {
+      opacity: 1;
+      transform: translateX(0);
     }
 
-    /* Control strip — Start / Play-Pause / Prev / Next / Restart.
-     * Primary CTA loud red so first-time visitors see where to click. */
-    .controls {
-      display: flex;
-      gap: 8px;
-      margin-top: 14px;
-      align-items: center;
+    /* ─── Main grid: reading column + sticky dash ──────────────── */
+    .main {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) clamp(360px, 50%, 640px);
+      height: calc(100vh - var(--topbar-h));
+      min-height: 0;
+    }
+
+    /* ─── Reading column (only thing that scrolls) ─────────────── */
+    .read {
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: var(--read-pad-t) var(--read-pad-x) var(--read-pad-b);
+      scroll-behavior: smooth;
+      min-width: 0;
+    }
+    .read::-webkit-scrollbar { width: 8px; }
+    .read::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.14); border-radius: 8px; }
+    .read::-webkit-scrollbar-track { background: transparent; }
+
+    /* ─── Hero ─────────────────────────────────────────────────── */
+    .hero {
+      max-width: 60ch;
+      padding-bottom: 48px;
+      border-bottom: 1px solid var(--rule);
+      margin-bottom: 12px;
+    }
+    .pagemeta {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 14px;
       flex-wrap: wrap;
     }
-    .controls .btn {
-      background: var(--btn-bg);
-      color: var(--btn-text);
-      border: 1px solid var(--btn-bg);
+    .pagemeta-crumb { color: var(--ink-3); font-size: 11.5px; }
+    .pagemeta-crumb b { color: var(--ink); font-weight: 500; }
+    .pagemeta-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--ink-3); }
+
+    .tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 3px 9px;
       border-radius: 2px;
-      padding: 8px 14px;
-      font-family: inherit;
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: background .15s, border-color .15s;
+      background: var(--paper-2);
+      color: var(--ink-2);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase;
     }
-    .controls .btn:hover:not(:disabled) { background: var(--btn-bg-2); border-color: var(--btn-bg-2); }
-    .controls .btn:focus { outline: none; box-shadow: 0 0 0 2px rgba(204,0,0,0.35); }
-    .controls .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-    .controls .btn.primary {
-      background: var(--accent);
-      border-color: var(--accent);
+    .tag.tag-accent { background: rgba(200,50,42,0.08); color: var(--accent-ink); }
+    .tag.tag-dot::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor;
+    }
+
+    h1.headline {
+      font-family: 'Sora', ui-sans-serif, system-ui, sans-serif;
+      font-weight: 600;
+      font-size: clamp(30px, 4.4vw, 46px);
+      line-height: 1.06;
+      margin: 14px 0 14px;
+      letter-spacing: -0.025em;
+    }
+    /* Sora has no italic — accent emphasis = bolder weight + accent red. */
+    h1.headline em { font-style: normal; font-weight: 700; color: var(--accent); }
+
+    .lede {
+      font-family: 'Sora', ui-sans-serif, system-ui, sans-serif;
+      font-weight: 400;
+      font-size: 17px;
+      line-height: 1.55;
+      color: var(--ink-2);
+      max-width: 56ch;
+      margin: 0 0 22px;
+    }
+    .lede strong { color: var(--ink); font-weight: 600; }
+
+    .scroll-hint {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--ink-3);
+      margin-top: 8px;
+    }
+
+    /* ─── Quickstart card (top of reading column, after hero) ─────
+     * 5-minute summary — same shape as the User Guide's intro
+     * table. Shown before the first slide so visitors know the
+     * shape of the journey before they commit to scrolling. */
+    .quickstart {
+      margin: 28px 0 8px;
+      padding: 22px 24px 24px;
+      border: 1px solid var(--rule-strong);
+      border-radius: 12px;
+      background: white;
+      box-shadow: 0 24px 60px -42px rgba(0,0,0,0.18);
+      max-width: 60ch;
+    }
+    .quickstart-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--accent-ink);
       font-weight: 700;
-      padding: 10px 18px;
-      letter-spacing: 0.1em;
+      margin-bottom: 6px;
     }
-    .controls .btn.primary:hover:not(:disabled) {
-      background: var(--accent-hot);
-      border-color: var(--accent-hot);
+    .quickstart h3 {
+      font-family: 'Sora', ui-sans-serif, sans-serif;
+      font-weight: 600;
+      font-size: 22px;
+      letter-spacing: -0.02em;
+      margin: 0 0 6px;
     }
-    .controls .btn svg { width: 12px; height: 12px; }
-    .controls .step-label {
+    .quickstart-lede {
+      color: var(--ink-2);
+      font-size: 13.5px;
+      margin: 0 0 14px;
+      line-height: 1.55;
+    }
+    .qs-steps {
+      list-style: none;
+      padding: 0; margin: 0 0 14px;
+      counter-reset: qsstep;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+    .qs-steps li {
+      counter-increment: qsstep;
+      padding: 10px 12px;
+      border: 1px solid var(--rule);
+      border-radius: 6px;
+      background: var(--paper-2);
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .qs-steps li::before {
+      content: counter(qsstep, decimal-leading-zero);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--accent);
+      letter-spacing: 0.04em;
+      font-weight: 700;
+    }
+    .qs-steps li b {
+      font-family: 'Sora', ui-sans-serif, sans-serif;
+      font-weight: 600;
+      font-size: 12.5px;
+      color: var(--ink);
+    }
+    .qs-steps li span {
+      font-size: 11.5px;
+      color: var(--ink-2);
+      line-height: 1.45;
+    }
+    .qs-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .qs-option {
+      padding: 10px 12px;
+      border: 1px solid var(--rule);
+      border-radius: 6px;
+      background: white;
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .qs-option-name {
+      font-family: 'Sora', ui-sans-serif, sans-serif;
+      font-weight: 600;
+      font-size: 12.5px;
+      color: var(--ink);
+    }
+    .qs-option-best {
+      font-size: 11px;
+      color: var(--ink-2);
+      line-height: 1.4;
+    }
+    .qs-option-cost {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      color: var(--ink-3);
+      margin-top: 2px;
+    }
+    .qs-foot {
+      margin-top: 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px;
+      letter-spacing: 0.06em;
+      color: var(--ink-3);
+      display: flex; flex-wrap: wrap; gap: 6px 14px;
+    }
+    .qs-foot strong { color: var(--ink); font-weight: 600; }
+    .scroll-arrow { display: inline-block; animation: bob 1.8s ease-in-out infinite; font-size: 13px; }
+    @keyframes bob {
+      0%,100% { transform: translateY(0); opacity: 0.4; }
+      50%     { transform: translateY(4px); opacity: 1; }
+    }
+
+    /* ─── Slides ───────────────────────────────────────────────── */
+    .slides { display: flex; flex-direction: column; }
+    .slide {
+      display: grid;
+      grid-template-columns: 78px minmax(0, 1fr);
+      column-gap: 24px;
+      padding: 56px 0;
+      border-top: 1px solid var(--rule);
+      max-width: 60ch;
+      transition: opacity 260ms;
+      opacity: 0.45;
+      scroll-margin-top: 12px;
+    }
+    .slide:first-child { border-top-color: var(--rule-strong); }
+    .slide.is-active { opacity: 1; }
+    .slide-num {
+      font-family: 'Sora', ui-sans-serif, system-ui, sans-serif;
+      font-size: 64px;
+      line-height: 0.9;
+      color: var(--accent);
+      font-weight: 300;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.04em;
+    }
+    .slide-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+      margin-bottom: 6px;
+    }
+    .slide h2 {
+      font-family: 'Sora', ui-sans-serif, system-ui, sans-serif;
+      font-weight: 600;
+      font-size: 24px;
+      letter-spacing: -0.02em;
+      margin: 0 0 10px;
+      line-height: 1.2;
+    }
+    /* Kept for older snippets; current template no longer renders it. */
+    .slide-sub {
+      font-family: 'Sora', ui-sans-serif, system-ui, sans-serif;
+      font-weight: 400;
+      font-size: 15px;
+      color: var(--ink-3);
+      margin: 0 0 18px;
+      line-height: 1.45;
+    }
+
+    /* The narration callout — Claude Design's `.callout` shape:
+     * red left rule + paper-tinted body. */
+    .callout {
+      border-left: 3px solid var(--accent);
+      background: rgba(200,50,42,0.04);
+      padding: 14px 18px;
+      border-radius: 0 4px 4px 0;
+      font-family: 'Sora', ui-sans-serif, system-ui, sans-serif;
+      font-weight: 400;
+      font-size: 15.5px;
+      line-height: 1.55;
+      color: var(--ink);
+      max-width: 56ch;
+    }
+    .callout-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent-ink);
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+
+    /* ─── Transport ────────────────────────────────────────────── */
+    .transport {
+      position: sticky; bottom: 0;
+      margin-top: 24px;
+      padding: 12px 0 4px;
+      background: linear-gradient(180deg, transparent, var(--paper) 30%);
+      display: flex; gap: 8px; align-items: center;
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 14px;
+      border: 1px solid var(--rule);
+      background: white;
+      color: var(--ink);
+      border-radius: 4px;
+      font-family: 'Sora', ui-sans-serif, sans-serif;
+      font-weight: 500;
+      font-size: 12px;
+      cursor: pointer;
+      transition: border-color 140ms, background 140ms;
+    }
+    .btn:hover:not(:disabled) { border-color: var(--ink); background: var(--paper-2); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn.icon { padding: 8px 10px; }
+    .btn.primary {
+      background: var(--ink); color: var(--paper);
+      border-color: var(--ink); font-weight: 600;
+    }
+    .btn.primary:hover:not(:disabled) {
+      background: var(--accent); border-color: var(--accent);
+    }
+    .btn svg { width: 11px; height: 11px; }
+    .step-label {
       margin-left: auto;
-      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-family: 'JetBrains Mono', monospace;
       font-size: 10px;
       letter-spacing: 0.14em;
-      color: var(--text-faint);
+      color: var(--ink-3);
     }
 
-    /* Toggle classes — .hero is either "idle" (default) or "playing".
-     * Children marked .intro-only / .playing-only show conditionally. */
-    .hero .playing-only { display: none; }
-    .hero.playing .intro-only { display: none; }
-    .hero.playing .playing-only { display: block; }
-
-    /* Desktop: two columns — dash on the left, text column on the
-     * right. `min-width: 0` on both so neither pushes the grid open
-     * when the dash's device bezel renders. */
-    @media (min-width: 980px) {
-      main {
-        grid-template-columns: minmax(0, 1fr) minmax(320px, 440px);
-        gap: 36px;
-        padding: 24px 28px 32px;
-      }
-      .hero { text-align: left; margin: 0; }
-      dash-sandbox { margin: 0; }
+    /* ─── End-of-tour summary card ─────────────────────────────── */
+    .end-card {
+      margin-top: 56px;
+      padding: 32px;
+      border: 1px solid var(--rule-strong);
+      border-radius: 10px;
+      background: white;
+      box-shadow: 0 24px 60px -36px rgba(0,0,0,0.2);
+      max-width: 60ch;
+    }
+    .end-card h2 {
+      font-family: 'Sora', ui-sans-serif, system-ui, sans-serif;
+      font-weight: 500;
+      font-size: 28px;
+      margin: 4px 0 12px;
+      letter-spacing: -0.02em;
+    }
+    .end-card p { color: var(--ink-2); margin: 0 0 16px; font-size: 14px; }
+    .end-stats {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+      margin: 18px 0 22px;
+      padding: 18px 0;
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+    }
+    .end-stat span:first-child {
+      font-family: 'Sora', ui-sans-serif, system-ui, sans-serif;
+      font-size: 26px; font-weight: 500; color: var(--ink);
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+      display: block;
+    }
+    .end-stat span:last-child {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--ink-3);
+    }
+    .next-card {
+      display: block;
+      padding: 16px 18px;
+      border: 1px solid var(--rule);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: border-color 160ms, transform 160ms;
+      background: var(--paper-2);
+      text-align: left;
+      width: 100%;
+      font: inherit;
+      color: inherit;
+    }
+    .next-card:hover { border-color: var(--ink); transform: translateY(-1px); }
+    .next-card-meta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--ink-3);
+    }
+    .next-card-title {
+      font-family: 'Sora', ui-sans-serif, system-ui, sans-serif; font-weight: 500;
+      font-size: 18px; margin: 4px 0; color: var(--ink);
+    }
+    .next-card-desc { color: var(--ink-2); font-size: 13px; }
+    .next-card-cta {
+      margin-top: 10px;
+      font-family: 'Sora', ui-sans-serif, sans-serif;
+      font-weight: 500; font-size: 12px;
+      color: var(--accent-ink);
+    }
+    .next-card-cta span { display: inline-block; transition: transform 160ms; }
+    .next-card:hover .next-card-cta span { transform: translateX(3px); }
+    .end-foot {
+      display: flex; justify-content: space-between; gap: 10px;
+      margin-top: 18px; flex-wrap: wrap;
     }
 
-    /* Tall desktop — more breathing room. */
-    @media (min-width: 980px) and (min-height: 900px) {
-      main { padding: 36px 28px 40px; }
-      h1 { font-size: 1.9rem; margin-bottom: 14px; }
+    /* ─── Pinned dash on the right ─────────────────────────────── */
+    .pin {
+      border-left: 1px solid var(--rule);
+      background: var(--paper-2);
+      display: flex; align-items: center; justify-content: center;
+      padding: 16px 20px;
+      height: calc(100vh - var(--topbar-h));
+      overflow: hidden;
+    }
+    .pin-card {
+      width: 100%;
+      max-width: 600px;
+      display: flex; flex-direction: column;
+      max-height: 100%;
+    }
+    .pin-chrome {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 2px 0 6px;
+    }
+    .pin-chrome-dots { display: flex; gap: 5px; }
+    .pin-chrome-dots span { width: 8px; height: 8px; border-radius: 50%; }
+    .pin-chrome-dots span:nth-child(1) { background: #E8433A; }
+    .pin-chrome-dots span:nth-child(2) { background: #F2C14E; }
+    .pin-chrome-dots span:nth-child(3) { background: #4BD66A; }
+    .pin-status {
+      display: flex; align-items: center; gap: 6px;
+      color: var(--signal);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+    }
+    .pulse {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--signal);
+      box-shadow: 0 0 0 0 rgba(46,125,79,0.5);
+      animation: pulse 1.6s infinite;
+    }
+    @keyframes pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(46,125,79,0.5); }
+      70%  { box-shadow: 0 0 0 8px rgba(46,125,79,0); }
+      100% { box-shadow: 0 0 0 0 rgba(46,125,79,0); }
+    }
+    .pin-meta {
+      display: flex; align-items: baseline; justify-content: space-between;
+      padding: 0 2px 6px; gap: 10px;
+    }
+    .pin-target {
+      background: rgba(242,193,78,0.25);
+      color: #806014;
+      padding: 2px 9px;
+      border-radius: 2px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; letter-spacing: 0.04em;
+      max-width: 70%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .pin-frame {
+      background: #0E1011;
+      border-radius: 12px;
+      padding: 8px;
+      box-shadow: inset 0 0 0 1px #1F2326, 0 24px 50px -28px rgba(0,0,0,0.4);
     }
 
-    /* Mobile: text compact below the dash. */
-    @media (max-width: 979px) {
-      .hero { text-align: center; }
-      .hero-body { font-size: 13px; }
-      .controls { justify-content: center; }
+    .pin-frame dash-sandbox {
+      display: block;
+      width: 100%;
+      max-width: none;
+      margin: 0;
     }
-
-    /* dash-sandbox internals we suppress when it's running in
-     * `controlled` mode. The component still renders these tags in
-     * its shadow-less markup; we hide them from the outside. */
     dash-sandbox[controlled] .dsb-narration,
     dash-sandbox[controlled] .dsb-controls,
     dash-sandbox[controlled] .dsb-startup { display: none !important; }
 
-    footer {
-      margin-top: 28px;
-      padding: 18px 28px 24px;
-      max-width: 1100px; margin-left: auto; margin-right: auto;
-      color: var(--text-faint);
-      font-family: 'JetBrains Mono', ui-monospace, monospace;
-      font-size: 11px;
-      letter-spacing: 0.08em;
-      border-top: 1px solid var(--border);
-      display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    /* Suppress the amber spotlight overlay in idle / diag regions —
+     * it would otherwise linger at the last step's coordinates and
+     * reappear over an unrelated scene. */
+    .pin-card.is-idle .dash-sandbox-highlight,
+    .pin-card.is-diag .dash-sandbox-highlight { display: none !important; }
+
+    /* ─── Diagnostics section (after end-card) ───────────────── */
+    .diag-section {
+      margin-top: 80px;
+      padding: 32px 0 80px;
+      border-top: 1px solid var(--rule-strong);
+      max-width: 60ch;
+      transition: opacity 260ms;
+      opacity: 0.5;
+      scroll-margin-top: 12px;
     }
-    footer a { color: var(--text-dim); text-decoration: none; }
-    footer a:hover { color: var(--text); }
+    .diag-section.is-active { opacity: 1; }
+    .diag-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--accent-ink);
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .diag-section h2 {
+      font-family: 'Sora', ui-sans-serif, system-ui, sans-serif;
+      font-weight: 600;
+      font-size: 30px;
+      letter-spacing: -0.02em;
+      margin: 4px 0 8px;
+      line-height: 1.1;
+    }
+    .diag-section .lede {
+      margin-bottom: 24px;
+    }
+    /* Sub-heading inside the diag section, used to introduce the
+     * 5-card grid and the troubleshooting checklist below it. */
+    .diag-subhead {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--ink-3);
+      margin: 26px 0 12px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .diag-subhead::before {
+      content: ''; width: 14px; height: 1px; background: var(--ink-3);
+    }
+    .diag-subhead em {
+      font-style: normal;
+      color: var(--accent-ink);
+    }
+
+    /* Troubleshooting checklist — copy lifted from the User Guide
+     * §12 ("Widgets all show '---'"), rendered as numbered steps. */
+    .diag-check {
+      list-style: none;
+      padding: 0; margin: 6px 0 8px;
+      display: flex; flex-direction: column; gap: 8px;
+      counter-reset: diagstep;
+    }
+    .diag-check li {
+      counter-increment: diagstep;
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 12px;
+      padding: 10px 12px;
+      border: 1px solid var(--rule);
+      border-radius: 6px;
+      background: white;
+      align-items: baseline;
+    }
+    .diag-check li::before {
+      content: counter(diagstep, decimal-leading-zero);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--accent);
+      letter-spacing: 0.04em;
+      align-self: center;
+      text-align: center;
+    }
+    .diag-check b {
+      font-family: 'Sora', ui-sans-serif, sans-serif;
+      font-weight: 600;
+      color: var(--ink);
+    }
+    .diag-check span {
+      display: block;
+      color: var(--ink-2);
+      font-size: 13px;
+      line-height: 1.5;
+      margin-top: 2px;
+    }
+    .diag-check code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      background: var(--paper-2);
+      padding: 1px 5px;
+      border-radius: 3px;
+      color: var(--ink);
+    }
+
+    .diag-stub {
+      margin-top: 16px;
+      padding: 12px 14px;
+      border: 1px dashed var(--rule);
+      border-radius: 6px;
+      font-size: 12px;
+      color: var(--ink-3);
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.04em;
+    }
+
+    /* ─── Reference section (bottom of reading column) ──────────
+     * Four anchor blocks the sidebar Documentation links target:
+     * #ref-wiring · #ref-ecus · #ref-install · #ref-specs.
+     * Lifted directly from the User Guide (§2, §7, §11, §14). */
+    .ref-section {
+      padding: 56px 0 96px;
+      max-width: 60ch;
+      border-top: 1px solid var(--rule-strong);
+      margin-top: 32px;
+    }
+    .ref-section h2 {
+      font-family: 'Sora', ui-sans-serif, sans-serif;
+      font-weight: 600;
+      font-size: 28px;
+      letter-spacing: -0.02em;
+      margin: 4px 0 8px;
+    }
+    .ref-block {
+      padding: 32px 0;
+      border-top: 1px solid var(--rule);
+      scroll-margin-top: 12px;
+    }
+    .ref-block:first-of-type { border-top: 0; }
+    .ref-block h3 {
+      font-family: 'Sora', ui-sans-serif, sans-serif;
+      font-weight: 600;
+      font-size: 20px;
+      letter-spacing: -0.018em;
+      margin: 0 0 4px;
+    }
+    .ref-block .lede {
+      font-size: 15px;
+      margin: 0 0 16px;
+      max-width: 56ch;
+    }
+    .ref-block .eyebrow {
+      margin-bottom: 8px;
+    }
+
+    /* SVG wire-harness diagram inside the Wiring reference block. */
+    .wire-diagram {
+      display: block;
+      width: 100%;
+      max-width: 560px;
+      margin: 8px 0 18px;
+      border: 1px solid var(--rule);
+      border-radius: 8px;
+      background: white;
+      padding: 14px 12px;
+    }
+
+    /* Wire colours table */
+    .wire-table {
+      display: flex; flex-direction: column;
+      border: 1px solid var(--rule);
+      border-radius: 8px;
+      overflow: hidden;
+      background: white;
+    }
+    .wire-row {
+      display: grid;
+      grid-template-columns: 28px 90px 1fr;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-top: 1px solid var(--rule);
+      font-size: 13px;
+    }
+    .wire-row:first-child { border-top: 0; }
+    .wire-dot {
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.15) inset;
+      justify-self: center;
+    }
+    .wire-dot.red    { background: #C8322A; }
+    .wire-dot.black  { background: #1A1A1A; }
+    .wire-dot.green  { background: #2E7D4F; }
+    .wire-dot.yellow { background: #F2C14E; }
+    .wire-name {
+      font-family: 'Sora', ui-sans-serif, sans-serif;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .wire-purpose {
+      color: var(--ink-2);
+      font-size: 13px;
+    }
+    .wire-purpose code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      background: var(--paper-2);
+      padding: 1px 5px;
+      border-radius: 3px;
+      color: var(--ink);
+    }
+
+    /* ECU presets table */
+    .ecu-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .ecu-card {
+      border: 1px solid var(--rule);
+      border-radius: 6px;
+      padding: 10px 12px;
+      background: white;
+    }
+    .ecu-card .name {
+      font-family: 'Sora', ui-sans-serif, sans-serif;
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 2px;
+    }
+    .ecu-card .versions {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--ink-3);
+      letter-spacing: 0.04em;
+    }
+    .ecu-card.coming .versions { color: var(--accent-ink); }
+    .ecu-card.coming .name::after {
+      content: 'soon';
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent-ink);
+      background: rgba(200,50,42,0.08);
+      padding: 1px 6px;
+      border-radius: 99px;
+      margin-left: 8px;
+      vertical-align: 2px;
+    }
+
+    /* Spec sheet two-column list */
+    .spec-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 16px;
+      border-top: 1px solid var(--rule);
+      padding-top: 10px;
+    }
+    .spec-list dt {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10.5px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+      padding: 6px 0 0;
+    }
+    .spec-list dd {
+      margin: 0;
+      font-size: 13px;
+      color: var(--ink);
+      padding: 6px 0 6px;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    /* Install / OTA steps */
+    .ota-list {
+      list-style: none;
+      padding: 0; margin: 0;
+      counter-reset: otastep;
+      display: flex; flex-direction: column;
+      gap: 8px;
+    }
+    .ota-list li {
+      counter-increment: otastep;
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 12px;
+      padding: 10px 12px;
+      border: 1px solid var(--rule);
+      border-radius: 6px;
+      background: white;
+      align-items: baseline;
+    }
+    .ota-list li::before {
+      content: counter(otastep, decimal-leading-zero);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--accent);
+      align-self: center;
+      text-align: center;
+    }
+    .ota-list b {
+      font-family: 'Sora', ui-sans-serif, sans-serif;
+      font-weight: 600;
+      color: var(--ink);
+    }
+    .ota-list span {
+      display: block;
+      font-size: 13px;
+      color: var(--ink-2);
+      line-height: 1.5;
+      margin-top: 2px;
+    }
+    .diag-jump {
+      display: inline-flex; align-items: center; gap: 8px;
+      margin-top: 10px;
+      padding: 10px 14px;
+      border: 1px solid var(--rule);
+      border-radius: 6px;
+      background: white;
+      font-family: 'Sora', ui-sans-serif, system-ui, sans-serif;
+      font-weight: 500;
+      font-size: 12.5px;
+      color: var(--ink);
+      cursor: pointer;
+      transition: border-color 140ms, background 140ms;
+    }
+    .diag-jump:hover { border-color: var(--ink); background: var(--paper-2); }
+    .diag-jump-arrow { color: var(--accent-ink); }
+
+    .pin-caption {
+      margin-top: 10px;
+      padding: 10px 14px;
+      border-left: 3px solid var(--hl);
+      background: rgba(242,193,78,0.10);
+      border-radius: 0 4px 4px 0;
+      font-family: 'Sora', ui-sans-serif, system-ui, sans-serif;
+      font-weight: 400;
+      font-size: 13px;
+      color: var(--ink);
+      line-height: 1.45;
+      max-height: 4.6em;
+      overflow: hidden;
+    }
+    .pin-caption .pc-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: #806014;
+      font-style: normal;
+      font-weight: 700;
+      margin-bottom: 2px;
+      display: block;
+    }
+
+    /* Narrow-window fallback: when usable width is below 760, hide
+     * the dash and let the slides take full width. The user said to
+     * focus on desktop, but this avoids a broken paint on laptops. */
+    @media (max-width: 760px) {
+      .main { grid-template-columns: 1fr; }
+      .pin { display: none; }
+    }
   </style>
 </head>
 <body>
-  <nav class="nav">
-    <div class="nav-brand">
-      <span class="mark">RDM<span class="sep">·</span>7</span>
-      <span class="sub">Sandbox</span>
-    </div>
-    <div class="nav-right">
-      <div class="tour-picker">
-        <span class="tour-picker-label">Tour</span>
-        <select id="tour-select" aria-label="Select tour"></select>
+  <div class="shell">
+    <!-- ─── Top bar ────────────────────────────────────────────── -->
+    <nav class="topbar">
+      <div class="brand">
+        <div class="brand-mark">R7</div>
       </div>
-      <a class="nav-link" href="https://studio.realtimedatamonitoring.com.au/">Studio</a>
-      <a class="nav-link" href="https://github.com/Trizzoto/rdm7-sandbox">GitHub</a>
-    </div>
-  </nav>
+      <div class="topbar-title">
+        <span class="name">RDM·7</span>
+        <span class="sub">Sandbox</span>
+      </div>
+      <div class="topbar-mid"></div>
+      <div class="topbar-right">
+        <div class="tour-pill">
+          <span class="tour-pill-label">Tour</span>
+          <select id="tour-select" aria-label="Select tour"></select>
+        </div>
+        <a class="nav-link" href="https://studio.realtimedatamonitoring.com.au/">Studio</a>
+        <a class="nav-link" href="https://github.com/Trizzoto/rdm7-sandbox">GitHub</a>
+      </div>
+    </nav>
 
-  <main>
-    <dash-sandbox
-      id="sb"
-      controlled
-      script="/tours/first-boot.json"
-      wasm="/rdm7-sandbox.wasm"
-    ></dash-sandbox>
+    <!-- ─── Sidebar (collapsed icon rail; click chevron / hover to expand) ─── -->
+    <aside class="sidenav" id="sidenav">
+      <div class="sidenav-inner" id="sidenav-inner">
+        <button class="sidenav-toggle" id="sidenav-toggle" type="button" aria-label="Toggle tour list">›</button>
 
-    <section class="hero" id="hero">
-      <div class="hero-eyebrow" id="eyebrow">Guided Tour</div>
-      <h1 id="hero-title">Your dash, in the browser.</h1>
+        <div class="sidenav-section">
+          <div class="sidenav-section-title">Guided tours</div>
+          <div id="tour-list"></div>
+        </div>
+        <div class="sidenav-section">
+          <div class="sidenav-section-title">Reference</div>
+          <button class="sidenav-item" type="button" data-tip="Install" data-ref="ref-install">
+            <span class="sidenav-item-num">·</span>
+            <span class="sidenav-item-title">Install</span>
+            <span class="sidenav-item-dur"></span>
+          </button>
+          <button class="sidenav-item" type="button" data-tip="Wiring" data-ref="ref-wiring">
+            <span class="sidenav-item-num">·</span>
+            <span class="sidenav-item-title">Wiring</span>
+            <span class="sidenav-item-dur"></span>
+          </button>
+          <button class="sidenav-item" type="button" data-tip="ECUs" data-ref="ref-ecus">
+            <span class="sidenav-item-num">·</span>
+            <span class="sidenav-item-title">ECUs</span>
+            <span class="sidenav-item-dur"></span>
+          </button>
+          <button class="sidenav-item" type="button" data-tip="Specs" data-ref="ref-specs">
+            <span class="sidenav-item-num">·</span>
+            <span class="sidenav-item-title">Specs</span>
+            <span class="sidenav-item-dur"></span>
+          </button>
+        </div>
+      </div>
+    </aside>
 
-      <div class="intro-only">
-        <p class="hero-body">
-          The real RDM-7 firmware compiled to WebAssembly — first-run wizard,
-          Device Settings, widget editor, Wi-Fi manager, the lot.
-        </p>
-        <p class="hero-body" id="hero-blurb">
-          Press <strong>Start Tour</strong> to begin, or pick a different one above.
-        </p>
+    <!-- ─── Main: scrollable reading column + sticky dash ───────── -->
+    <main class="main">
+      <div class="read" id="read">
+        <section class="hero" id="hero">
+          <div class="pagemeta">
+            <span class="pagemeta-crumb">Tutorials</span>
+            <span class="pagemeta-dot"></span>
+            <span class="pagemeta-crumb"><b id="crumb-title">First-Boot Walkthrough</b></span>
+            <span class="pagemeta-dot"></span>
+            <span class="pagemeta-crumb mono" id="crumb-meta">~60s · no prior knowledge</span>
+          </div>
+          <span class="tag tag-accent tag-dot">Scroll-driven tour</span>
+          <h1 class="headline">
+            <span id="hero-title">Your dash, in the browser<em>.</em></span>
+          </h1>
+          <p class="lede" id="hero-blurb">
+            The <strong>real RDM-7 firmware</strong> compiled to WebAssembly. Scroll the
+            column to walk through the tour — each slide drives the dash on the right.
+          </p>
+          <div class="scroll-hint">
+            <span>Scroll to begin</span>
+            <span class="scroll-arrow">↓</span>
+          </div>
+        </section>
+
+        <!-- Quickstart card. Mirrors the User Guide's 5-minute
+             intro table — six steps to live data, then three
+             options for getting Studio open. Sits between the
+             hero and the slides so visitors see the shape of
+             the journey before scrolling into the tour. -->
+        <aside class="quickstart" aria-label="Quickstart">
+          <div class="quickstart-eyebrow">Quickstart · 5 minutes</div>
+          <h3>Box to live data, six steps.</h3>
+          <p class="quickstart-lede">
+            Most installs are running before the kettle finishes. The wizard handles
+            CAN bus and ECU detection automatically — your only real choice is which
+            of the three Studio paths suits your garage.
+          </p>
+          <ol class="qs-steps">
+            <li>
+              <b>Wire 4 cables</b>
+              <span>Red → +12 V switched · Black → ground · Green → CAN H · Yellow → CAN L</span>
+            </li>
+            <li>
+              <b>Ignition on</b>
+              <span>Dash boots straight into the First-Run Wizard.</span>
+            </li>
+            <li>
+              <b>CAN auto-scan</b>
+              <span>125 / 250 / 500 / 1000 kbps — locks on in 2–4 s.</span>
+            </li>
+            <li>
+              <b>Pick your ECU</b>
+              <span>MaxxECU, Haltech, Ford, GM GEN IV, Custom — the lot.</span>
+            </li>
+            <li>
+              <b>Connect option</b>
+              <span>Home Wi-Fi, USB cable, or the dash's own hotspot.</span>
+            </li>
+            <li>
+              <b>Tap Finish</b>
+              <span>Live data flowing. Done.</span>
+            </li>
+          </ol>
+
+          <div class="quickstart-eyebrow" style="margin-top:6px;">How do you want to customise?</div>
+          <div class="qs-options">
+            <div class="qs-option">
+              <span class="qs-option-name">Home Wi-Fi</span>
+              <span class="qs-option-best">Best when there's signal in the garage.</span>
+              <span class="qs-option-cost">Phone keeps internet</span>
+            </div>
+            <div class="qs-option">
+              <span class="qs-option-name">USB cable</span>
+              <span class="qs-option-best">Best with a laptop and the desktop Studio.</span>
+              <span class="qs-option-cost">No network needed</span>
+            </div>
+            <div class="qs-option">
+              <span class="qs-option-name">Dash hotspot</span>
+              <span class="qs-option-best">Best off-grid. Phone joins the dash directly.</span>
+              <span class="qs-option-cost">Phone offline while connected</span>
+            </div>
+          </div>
+          <div class="qs-foot">
+            <span><strong>SSID</strong> RDM7-XXXX</span>
+            <span><strong>Password</strong> rdm7dash</span>
+            <span><strong>URL</strong> http://192.168.4.1</span>
+          </div>
+        </aside>
+
+        <div class="slides" id="slides"></div>
+
+        <div id="end-card-host"></div>
+
+        <!-- Diagnostics section. Mirrors the firmware's System
+             Diagnostics screen (User Guide §8.5) — the same five
+             health cards rendered on the dash plus a troubleshooting
+             checklist lifted from §12 "Widgets all show '---'". -->
+        <section class="diag-section" id="diag-section">
+          <div class="diag-eyebrow">Optional · Diagnostics</div>
+          <h2>Widgets all showing <em style="font-style:normal;font-weight:700;color:var(--accent);">---</em>?</h2>
+          <p class="lede">
+            No CAN data. Watch the <strong>CAN Bus</strong> card on the right — RX climbing
+            means traffic, flat at zero means nothing.
+          </p>
+
+          <div class="diag-subhead">If RX <em>stays at zero</em></div>
+          <ol class="diag-check">
+            <li><div><b>Wiring</b><span>CAN-H green, CAN-L yellow. Swap-check at the connector.</span></div></li>
+            <li><div><b>Bitrate</b><span>Match the ECU in <code>Device Settings → CAN Bus</code>, or hit Re-run Auto-Scan.</span></div></li>
+            <li><div><b>ECU preset</b><span>Wrong version → IDs misaligned → garbage decode. Pick the closest match.</span></div></li>
+            <li><div><b>Engine running?</b><span>Some ECUs only broadcast when started, not ignition-on.</span></div></li>
+            <li><div><b>Termination</b><span>120 Ω each end. Rear jumper (yellow block, bottom-right) enables RDM's end.</span></div></li>
+            <li><div><b>Values wild?</b><span>Endian mismatch — flip <code>Intel ⇄ Motorola</code> in the widget's CAN Signal tab.</span></div></li>
+          </ol>
+        </section>
+
+        <!-- Reference section. Four anchored blocks the sidebar's
+             Documentation links target. Content lifted from User
+             Guide §2 (wiring), §7 (ECUs), §11 (OTA), §14 (specs). -->
+        <section class="ref-section" id="ref-section">
+          <div class="eyebrow">Reference</div>
+          <h2>Quick reference</h2>
+          <p class="lede">
+            The sidebar links jump down here. Everything lifted directly from the
+            User Guide so you don't have to flip between pages while wiring or
+            tuning.
+          </p>
+
+          <div class="ref-block" id="ref-install">
+            <div class="eyebrow">Install firmware · OTA</div>
+            <h3>Updates over Wi-Fi — no cables</h3>
+            <p class="lede">
+              Updates ship over Wi-Fi straight to the dash. The firmware keeps two
+              slots and rolls back automatically if a new version fails to boot —
+              you can't brick the device.
+            </p>
+            <ol class="ota-list">
+              <li>
+                <div>
+                  <b>Confirm Wi-Fi</b>
+                  <span>Dash needs to be on your home network with internet. Check
+                  Diagnostics → Wi-Fi card for "Internet: OK".</span>
+                </div>
+              </li>
+              <li>
+                <div>
+                  <b>Check Updates</b>
+                  <span>Device Settings → Network → <code>Check Updates</code>. The dash queries
+                  the update server and shows the new version + release notes if one's
+                  available.</span>
+                </div>
+              </li>
+              <li>
+                <div>
+                  <b>Download &amp; Install</b>
+                  <span>Tap to start. Progress bar shows download (~2 MB), then the
+                  dash reboots into the new firmware. The whole thing takes about 30
+                  seconds on decent Wi-Fi.</span>
+                </div>
+              </li>
+              <li>
+                <div>
+                  <b>Auto-check banner</b>
+                  <span>When idle on home Wi-Fi, the dash polls every few hours in
+                  the background. A small banner appears on the home screen if an
+                  update lands — tap to jump straight to the prompt.</span>
+                </div>
+              </li>
+              <li>
+                <div>
+                  <b>If it fails</b>
+                  <span>Failed downloads retry up to 3 times. Weak signal is the most
+                  common cause — move closer to your AP or use the desktop USB path
+                  as a fallback.</span>
+                </div>
+              </li>
+            </ol>
+          </div>
+
+          <div class="ref-block" id="ref-wiring">
+            <div class="eyebrow">Wiring &amp; CAN</div>
+            <h3>Four wires, no soldering</h3>
+            <p class="lede">
+              The harness ships with a colour-coded pigtail. Match the colours to your
+              ECU's CAN-bus wiring diagram (look for "CAN H" / "CAN L"), and you're
+              done.
+            </p>
+
+            <!-- Visual harness diagram. RDM-7 unit on the right with
+                 the four labelled wires fanning out to the left to
+                 their power and CAN destinations. -->
+            <svg class="wire-diagram" viewBox="0 0 560 220" role="img" aria-label="RDM-7 four-wire harness diagram">
+              <!-- 12V switched source -->
+              <g>
+                <rect x="6" y="18" width="118" height="34" rx="4" fill="#FAF7F2" stroke="#1A1A1A" stroke-width="1.2"/>
+                <text x="65" y="34" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9.5" letter-spacing="1.6" fill="#7A7874">+12 V SWITCHED</text>
+                <text x="65" y="46" text-anchor="middle" font-family="'Sora', sans-serif" font-weight="600" font-size="10.5" fill="#1A1A1A">Ignition source</text>
+              </g>
+              <!-- Chassis ground -->
+              <g>
+                <rect x="6" y="62" width="118" height="34" rx="4" fill="#FAF7F2" stroke="#1A1A1A" stroke-width="1.2"/>
+                <text x="65" y="78" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9.5" letter-spacing="1.6" fill="#7A7874">CHASSIS GND</text>
+                <text x="65" y="90" text-anchor="middle" font-family="'Sora', sans-serif" font-weight="600" font-size="10.5" fill="#1A1A1A">Battery −</text>
+              </g>
+              <!-- ECU CAN-H -->
+              <g>
+                <rect x="6" y="124" width="118" height="34" rx="4" fill="#FAF7F2" stroke="#1A1A1A" stroke-width="1.2"/>
+                <text x="65" y="140" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9.5" letter-spacing="1.6" fill="#7A7874">ECU CAN-H</text>
+                <text x="65" y="152" text-anchor="middle" font-family="'Sora', sans-serif" font-weight="600" font-size="10.5" fill="#1A1A1A">labelled CANH</text>
+              </g>
+              <!-- ECU CAN-L -->
+              <g>
+                <rect x="6" y="168" width="118" height="34" rx="4" fill="#FAF7F2" stroke="#1A1A1A" stroke-width="1.2"/>
+                <text x="65" y="184" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9.5" letter-spacing="1.6" fill="#7A7874">ECU CAN-L</text>
+                <text x="65" y="196" text-anchor="middle" font-family="'Sora', sans-serif" font-weight="600" font-size="10.5" fill="#1A1A1A">labelled CANL</text>
+              </g>
+
+              <!-- Wires: Bezier curves with stroke colours -->
+              <path d="M 124 35  C 220 35, 260 60, 360 60"   fill="none" stroke="#C8322A" stroke-width="3.4" stroke-linecap="round"/>
+              <path d="M 124 79  C 220 79, 260 84, 360 84"   fill="none" stroke="#1A1A1A" stroke-width="3.4" stroke-linecap="round"/>
+              <path d="M 124 141 C 220 141, 260 130, 360 130" fill="none" stroke="#2E7D4F" stroke-width="3.4" stroke-linecap="round"/>
+              <path d="M 124 185 C 220 185, 260 156, 360 156" fill="none" stroke="#F2C14E" stroke-width="3.4" stroke-linecap="round"/>
+
+              <!-- Twist mark on the CAN pair -->
+              <text x="245" y="100" font-family="'JetBrains Mono', monospace" font-size="8" fill="#7A7874" letter-spacing="1.2">↻ TWIST</text>
+
+              <!-- RDM-7 device block -->
+              <g>
+                <rect x="360" y="34" width="190" height="148" rx="10" fill="#0E1011" stroke="#1F2326" stroke-width="1.5"/>
+                <rect x="370" y="46" width="170" height="100" rx="4" fill="#14171A"/>
+                <text x="455" y="100" text-anchor="middle" font-family="'Sora', sans-serif" font-weight="700" font-size="22" letter-spacing="-0.5" fill="#FAF7F2">RDM·7</text>
+                <text x="455" y="116" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="8" letter-spacing="2.2" fill="#6C7075">DASH</text>
+                <!-- Connector pins on the left edge of the device -->
+                <circle cx="362" cy="60"  r="3.6" fill="#C8322A"/>
+                <circle cx="362" cy="84"  r="3.6" fill="#1A1A1A" stroke="#FAF7F2" stroke-width="0.6"/>
+                <circle cx="362" cy="130" r="3.6" fill="#2E7D4F"/>
+                <circle cx="362" cy="156" r="3.6" fill="#F2C14E"/>
+                <!-- 120Ω jumper indicator -->
+                <rect x="378" y="158" width="62" height="18" rx="3" fill="#F2C14E" opacity="0.18"/>
+                <text x="409" y="170" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="8.5" letter-spacing="0.6" fill="#806014">120 Ω JUMPER</text>
+              </g>
+
+              <!-- Wire colour key on the wires -->
+              <text x="220" y="32"  font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="1.4" fill="#C8322A">RED  +12 V</text>
+              <text x="220" y="76"  font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="1.4" fill="#1A1A1A">BLACK  GND</text>
+              <text x="220" y="138" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="1.4" fill="#2E7D4F">GREEN  CAN-H</text>
+              <text x="220" y="182" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="1.4" fill="#806014">YELLOW  CAN-L</text>
+            </svg>
+
+            <div class="wire-table">
+              <div class="wire-row">
+                <span class="wire-dot red"></span>
+                <span class="wire-name">Red</span>
+                <span class="wire-purpose">+12 V power · <strong>switched</strong> ignition source, not constant 12 V</span>
+              </div>
+              <div class="wire-row">
+                <span class="wire-dot black"></span>
+                <span class="wire-name">Black</span>
+                <span class="wire-purpose">Ground · clean chassis ground or battery negative</span>
+              </div>
+              <div class="wire-row">
+                <span class="wire-dot green"></span>
+                <span class="wire-name">Green</span>
+                <span class="wire-purpose">CAN High · ECU CAN-H (sometimes labelled <code>CANH</code>)</span>
+              </div>
+              <div class="wire-row">
+                <span class="wire-dot yellow"></span>
+                <span class="wire-name">Yellow</span>
+                <span class="wire-purpose">CAN Low · ECU CAN-L (sometimes labelled <code>CANL</code>)</span>
+              </div>
+            </div>
+            <p class="lede" style="margin-top:16px;">
+              Use <strong>twisted-pair</strong> cable for the green/yellow run for best signal
+              integrity. CAN networks need a <code>120 Ω</code> terminator at each end — most
+              aftermarket ECUs already terminate at their end, and the RDM-7 has a
+              built-in jumper on the rear cover (yellow block, bottom-right). Bridge the
+              two pins to enable.
+            </p>
+          </div>
+
+          <div class="ref-block" id="ref-ecus">
+            <div class="eyebrow">Supported ECUs</div>
+            <h3>Built-in presets</h3>
+            <p class="lede">
+              Each preset ships with the full signal map — CAN IDs, bit positions,
+              scale factors, units. Pick brand → version in the wizard or in
+              Device Settings; everything else fills in automatically.
+            </p>
+            <div class="ecu-grid">
+              <div class="ecu-card">
+                <div class="name">MaxxECU</div>
+                <div class="versions">v1.2 · v1.3 · 46 / 100+ signals</div>
+              </div>
+              <div class="ecu-card">
+                <div class="name">Haltech</div>
+                <div class="versions">Nexus · Elite · full stream</div>
+              </div>
+              <div class="ecu-card">
+                <div class="name">Ford</div>
+                <div class="versions">BA · BF · FG · core powertrain</div>
+              </div>
+              <div class="ecu-card">
+                <div class="name">GM GEN IV</div>
+                <div class="versions">LS2 · LS3 · LT1 · core powertrain</div>
+              </div>
+              <div class="ecu-card">
+                <div class="name">ECUMaster</div>
+                <div class="versions">EMU · EMU Black</div>
+              </div>
+              <div class="ecu-card">
+                <div class="name">MegaSquirt</div>
+                <div class="versions">MS3 · MS3 Pro</div>
+              </div>
+              <div class="ecu-card coming">
+                <div class="name">Link</div>
+                <div class="versions">G4+ · G4X · in development</div>
+              </div>
+              <div class="ecu-card">
+                <div class="name">Custom / DBC</div>
+                <div class="versions">Manual CAN · DBC import</div>
+              </div>
+            </div>
+            <p class="lede" style="margin-top:16px;">
+              Don't see yours? The <strong>Custom</strong> preset lets you enter CAN IDs by
+              hand (CAN ID, bit start, length, scale, offset, endianness), and Studio's
+              <strong>DBC Import</strong> tool converts a vendor-supplied <code>.dbc</code> file
+              into RDM signals in one shot. The <strong>Marketplace</strong> hosts
+              community-contributed signal packs too — someone may have already done the
+              work for your car.
+            </p>
+          </div>
+
+          <div class="ref-block" id="ref-specs">
+            <div class="eyebrow">Specifications</div>
+            <h3>Hardware &amp; limits</h3>
+            <dl class="spec-list">
+              <dt>Display</dt>
+              <dd>800 × 480 RGB LCD, 16-bit colour</dd>
+              <dt>Refresh</dt>
+              <dd>70 Hz</dd>
+              <dt>Touch</dt>
+              <dd>Capacitive (GT911)</dd>
+              <dt>Processor</dt>
+              <dd>ESP32-S3 dual-core, 240 MHz</dd>
+              <dt>Memory</dt>
+              <dd>8 MB PSRAM + 16 MB flash</dd>
+              <dt>Storage</dt>
+              <dd>LittleFS (~8.8 MB) + SD card</dd>
+              <dt>CAN Bus</dt>
+              <dd>ISO 11898 · 125 / 250 / 500 / 1000 kbps</dd>
+              <dt>Wi-Fi</dt>
+              <dd>2.4 GHz 802.11 b/g/n · STA + AP concurrent</dd>
+              <dt>Layouts stored</dt>
+              <dd>Up to 16</dd>
+              <dt>Widgets / layout</dt>
+              <dd>32 (16 panels · 2 bars · 2 indicators · 8 warnings · 1 RPM bar)</dd>
+              <dt>Signals / layout</dt>
+              <dd>Up to 128</dd>
+              <dt>Signal timeout</dt>
+              <dd>2 s (widget shows <code>---</code> after this)</dd>
+              <dt>Power</dt>
+              <dd>12 V DC switched</dd>
+              <dt>OTA</dt>
+              <dd>Wi-Fi · dual-slot rollback safety</dd>
+            </dl>
+          </div>
+        </section>
+
+        <div class="transport" id="transport" style="display:none;">
+          <button class="btn icon" id="back-btn" title="Previous slide (↑)" aria-label="Previous">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M11 3L4 8l7 5V3z" fill="currentColor"/><rect x="3" y="3" width="1.5" height="10" fill="currentColor"/></svg>
+          </button>
+          <button class="btn icon" id="next-btn" title="Next slide (↓)" aria-label="Next">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3l7 5-7 5V3z" fill="currentColor"/><rect x="11.5" y="3" width="1.5" height="10" fill="currentColor"/></svg>
+          </button>
+          <button class="btn" id="restart-btn" title="Back to top (R)">↺ Back to top</button>
+          <span class="step-label" id="step-label">—</span>
+        </div>
       </div>
 
-      <div class="playing-only">
-        <div class="caption-box" id="caption">Press Play to begin.</div>
-      </div>
-
-      <div class="controls" role="toolbar" aria-label="Tour transport">
-        <button class="btn primary intro-only" id="start-btn" disabled>
-          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 3l9 5-9 5V3z" fill="currentColor"/></svg>
-          Start Tour
-        </button>
-        <button class="btn intro-only" id="skip-btn" disabled>Skip</button>
-
-        <button class="btn playing-only" id="back-btn" title="Previous (←)" aria-label="Previous">
-          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M11 3L4 8l7 5V3z" fill="currentColor"/><rect x="3" y="3" width="1.5" height="10" fill="currentColor"/></svg>
-        </button>
-        <button class="btn primary playing-only" id="play-btn" title="Play / Pause (Space)" aria-label="Play">
-          <svg viewBox="0 0 16 16" aria-hidden="true" id="play-icon"><path d="M4 3l9 5-9 5V3z" fill="currentColor"/></svg>
-          <span id="play-label">Play</span>
-        </button>
-        <button class="btn playing-only" id="next-btn" title="Next (→)" aria-label="Next">
-          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3l7 5-7 5V3z" fill="currentColor"/><rect x="11.5" y="3" width="1.5" height="10" fill="currentColor"/></svg>
-        </button>
-        <button class="btn playing-only" id="restart-btn" title="Restart (R)" aria-label="Restart">
-          <svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3v4h4"/><path d="M2 7a6 6 0 1 1 1.7 4.2"/></svg>
-        </button>
-        <span class="step-label playing-only" id="step-label">—</span>
-      </div>
-    </section>
-  </main>
-
-  <footer>
-    <span>Replaces recorded user-guide videos · Part of the RDM-7 project</span>
-    <span>v0.1.0</span>
-  </footer>
+      <aside class="pin">
+        <div class="pin-card">
+          <div class="pin-chrome">
+            <div class="pin-chrome-dots"><span></span><span></span><span></span></div>
+            <div class="eyebrow">rdm7.local · live preview</div>
+            <div class="pin-status">
+              <span class="pulse"></span>
+              <span>Live</span>
+            </div>
+          </div>
+          <div class="pin-meta">
+            <span class="eyebrow">Now showing</span>
+            <span class="pin-target mono" id="pin-target">— · idle</span>
+          </div>
+          <div class="pin-frame">
+            <dash-sandbox
+              id="sb"
+              controlled
+              script="/tours/first-boot.json"
+              wasm="/rdm7-sandbox.wasm"
+            ></dash-sandbox>
+          </div>
+          <div class="pin-caption" id="pin-caption">
+            <span class="pc-eyebrow">Press a slide to begin</span>
+            Scroll the middle column. The dash will follow each step.
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
 
   <script type="module">
     import '/src/sandbox.ts';
 
-    const ICON_PLAY  = '<path d="M4 3l9 5-9 5V3z" fill="currentColor"/>';
-    const ICON_PAUSE = '<rect x="4" y="3" width="3" height="10" fill="currentColor"/><rect x="9" y="3" width="3" height="10" fill="currentColor"/>';
-
     (async () => {
       const manifest = await fetch('/tours/manifest.json').then(r => r.json());
-      const select      = document.getElementById('tour-select');
-      const sb          = document.getElementById('sb');
-      const hero        = document.getElementById('hero');
-      const eyebrow     = document.getElementById('eyebrow');
-      const heroTitle   = document.getElementById('hero-title');
-      const captionEl   = document.getElementById('caption');
-      const startBtn    = document.getElementById('start-btn');
-      const skipBtn     = document.getElementById('skip-btn');
-      const playBtn     = document.getElementById('play-btn');
-      const playIcon    = document.getElementById('play-icon');
-      const playLabel   = document.getElementById('play-label');
-      const backBtn     = document.getElementById('back-btn');
-      const nextBtn     = document.getElementById('next-btn');
-      const restartBtn  = document.getElementById('restart-btn');
-      const stepLabel   = document.getElementById('step-label');
 
-      // Populate the tour picker.
-      for (const t of manifest.tours) {
+      const select         = document.getElementById('tour-select');
+      const tourList       = document.getElementById('tour-list');
+      const sb             = document.getElementById('sb');
+      const read           = document.getElementById('read');
+      const slidesEl       = document.getElementById('slides');
+      const heroTitle      = document.getElementById('hero-title');
+      const heroBlurb      = document.getElementById('hero-blurb');
+      const crumbTitle     = document.getElementById('crumb-title');
+      const crumbMeta      = document.getElementById('crumb-meta');
+      const stepLabel      = document.getElementById('step-label');
+      const pinTarget      = document.getElementById('pin-target');
+      const pinCaption     = document.getElementById('pin-caption');
+      const endCardHost    = document.getElementById('end-card-host');
+      const transport      = document.getElementById('transport');
+      const backBtn        = document.getElementById('back-btn');
+      const nextBtn        = document.getElementById('next-btn');
+      const restartBtn     = document.getElementById('restart-btn');
+      const sidenav        = document.getElementById('sidenav');
+      const sidenavToggle  = document.getElementById('sidenav-toggle');
+
+      let currentFile = 'first-boot.json';
+      let activeIdx   = -1;
+      let tourLoaded  = false;
+      const tourById  = Object.fromEntries(manifest.tours.map(t => [t.file, t]));
+
+      // ─── Sidebar expand/collapse (chevron + hover) ───
+      sidenavToggle.addEventListener('click', () => {
+        sidenav.classList.toggle('is-open');
+        sidenavToggle.textContent = sidenav.classList.contains('is-open') ? '‹' : '›';
+      });
+      sidenav.addEventListener('mouseenter', () => sidenav.classList.add('is-hover'));
+      sidenav.addEventListener('mouseleave', () => {
+        sidenav.classList.remove('is-hover');
+      });
+      // Hover-expand: visual only; click to pin open.
+      const hoverStyleEl = document.createElement('style');
+      hoverStyleEl.textContent = `
+        .sidenav.is-hover .sidenav-inner { width: var(--rail-expanded); box-shadow: 6px 0 24px -10px rgba(0,0,0,0.18); border-right: 1px solid var(--rule); }
+        .sidenav.is-hover .sidenav-section-title,
+        .sidenav.is-hover .sidenav-item-title,
+        .sidenav.is-hover .sidenav-item-dur { opacity: 1; }
+      `;
+      document.head.appendChild(hoverStyleEl);
+
+      // ─── Reference sidebar links → smooth-scroll to anchor ───
+      // Each docs button has data-ref="<id>". Clicking scrolls the
+      // reading column to that anchor, where the matching .ref-block
+      // is rendered. Falls back to no-op if the anchor isn't found.
+      document.querySelectorAll('.sidenav-item[data-ref]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const target = document.getElementById(btn.dataset.ref);
+          if (!target) return;
+          read.scrollTo({ top: target.offsetTop - 12, behavior: 'smooth' });
+        });
+      });
+
+      // ─── Sidebar tour list ───
+      // Manifest v2 introduced an optional `groups` array and a
+      // per-tour `group` field. We render one section per group
+      // (matching the "Reference" section's visual style); tours
+      // without a `group` fall into a default ungrouped block at
+      // the bottom so old manifests still render.
+      const groups = manifest.groups || [];
+      const groupOrder = groups.map((g) => g.id);
+      const groupLabelById = Object.fromEntries(groups.map((g) => [g.id, g.label]));
+      // Bucket tours: { groupId → [{tour, indexInTour}] }
+      const buckets = new Map();
+      manifest.tours.forEach((t, i) => {
+        const gid = t.group || '__ungrouped';
+        if (!buckets.has(gid)) buckets.set(gid, []);
+        buckets.get(gid).push({ t, i });
+      });
+      // Resolved order: declared groups first, then any unknown
+      // groups, then the ungrouped fallback.
+      const resolvedOrder = [
+        ...groupOrder.filter((id) => buckets.has(id)),
+        ...[...buckets.keys()].filter(
+          (id) => !groupOrder.includes(id) && id !== '__ungrouped',
+        ),
+        ...(buckets.has('__ungrouped') ? ['__ungrouped'] : []),
+      ];
+
+      const renderTourBtn = ({ t, i }) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'sidenav-item' + (t.file === currentFile ? ' is-active' : '');
+        btn.dataset.file = t.file;
+        btn.dataset.tip = t.title;
+        btn.innerHTML = `
+          <span class="sidenav-item-num">${String(i + 1).padStart(2, '0')}</span>
+          <span class="sidenav-item-title">${t.title}</span>
+          <span class="sidenav-item-dur">${t.durationSec}s</span>
+        `;
+        btn.addEventListener('click', () => loadTour(t.file));
+        return btn;
+      };
+
+      // Empty the placeholder div and rebuild the section. We add
+      // a sub-heading per group inside the same `.sidenav-section`
+      // so the existing collapsed-rail behaviour (titles fade in
+      // on hover) still works — those subheadings inherit the
+      // same opacity rules as the parent section title.
+      tourList.innerHTML = '';
+      const groupTitleStyle = `
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase;
+        color: var(--ink-3); padding: 16px 18px 6px;
+        opacity: 0; transition: opacity 180ms; white-space: nowrap;
+      `;
+      resolvedOrder.forEach((gid, idx) => {
+        const label = groupLabelById[gid] || (gid === '__ungrouped' ? 'Tours' : gid);
+        // First group has no extra spacing — the section already has
+        // its own top margin.
+        const heading = document.createElement('div');
+        heading.className = 'tour-group-title';
+        heading.textContent = label;
+        heading.style.cssText = groupTitleStyle + (idx === 0 ? 'padding-top: 4px;' : '');
+        tourList.appendChild(heading);
+        for (const item of buckets.get(gid)) {
+          tourList.appendChild(renderTourBtn(item));
+        }
+      });
+      // Group headings only show when the sidebar is expanded
+      // (hover or pinned). They share the same opacity gate as the
+      // section-title, so reuse the existing rule by piggy-backing
+      // on the .sidenav-section-title selector.
+      const groupHeadStyle = document.createElement('style');
+      groupHeadStyle.textContent = `
+        .sidenav.is-open .tour-group-title,
+        .sidenav.is-hover .tour-group-title { opacity: 1 !important; }
+      `;
+      document.head.appendChild(groupHeadStyle);
+
+      // ─── Topbar select ───
+      manifest.tours.forEach((t) => {
         const o = document.createElement('option');
         o.value = `/tours/${t.file}`;
         o.textContent = `${t.title} — ${t.durationSec}s`;
-        o.dataset.title = t.title;
+        o.dataset.file = t.file;
+        if (t.file === currentFile) o.selected = true;
         select.appendChild(o);
-      }
+      });
 
       const waitForReady = () => new Promise(r => {
         if (sb.runner) return r();
         sb.addEventListener('ready', () => r(), { once: true });
       });
 
-      select.addEventListener('change', async () => {
+      // ─── Build slides for a script ───
+      function buildSlides(script) {
+        slidesEl.innerHTML = '';
+        script.steps.forEach((step, i) => {
+          const slide = document.createElement('section');
+          slide.className = 'slide';
+          slide.dataset.idx = String(i);
+
+          const sceneTag = step.scene
+            ? `scene · ${step.scene}`
+            : `step · ${String(i + 1).padStart(2, '0')}`;
+          const head = (step.voice || step.caption || '')
+            .split(/[—.?!]\s+/)[0]
+            .replace(/^["“]/, '').replace(/["”]$/, '')
+            .slice(0, 80);
+          const body = step.voice || step.caption || '';
+
+          // Slides whose scene is the CAN scan get a "Run diagnostics"
+          // jump that scrolls to the section at the bottom of the page.
+          const isCanStep = step.scene === 'step1' || step.scene === 'step1_done';
+          const diagJumpHTML = isCanStep
+            ? `<button class="diag-jump" data-jump-diag>
+                 Couldn't find your CAN bus? <span class="diag-jump-arrow">↓ Run diagnostics</span>
+               </button>`
+            : '';
+
+          // Headline = short; callout = full narration. No subtitle —
+          // it just duplicated the callout text.
+          slide.innerHTML = `
+            <div class="slide-num">${String(i + 1).padStart(2, '0')}</div>
+            <div class="slide-body">
+              <div class="slide-eyebrow">${sceneTag}</div>
+              <h2 class="serif">${head || 'Step ' + (i + 1)}</h2>
+              <div class="callout">
+                <div class="callout-eyebrow">Now narrating · ${String(i + 1).padStart(2,'0')} / ${script.steps.length}</div>
+                ${body || '—'}
+              </div>
+              ${diagJumpHTML}
+            </div>
+          `;
+          // Wire any diag-jump buttons inside this slide.
+          slide.querySelectorAll('[data-jump-diag]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+              const diag = document.getElementById('diag-section');
+              if (diag) read.scrollTo({ top: diag.offsetTop - 12, behavior: 'smooth' });
+            });
+          });
+          slidesEl.appendChild(slide);
+        });
+        transport.style.display = 'flex';
+        stepLabel.textContent = `0 / ${script.steps.length}`;
+      }
+
+      // ─── Scroll-position sync ────────────────────────────────────
+      // The reading column has three logical regions, in order:
+      //   IDLE   — visitor is in the hero, above slide 01. Dash shows
+      //            the static "---" placeholder; canvas is hidden.
+      //   SLIDES — visitor is on tour slides; dash mirrors that step.
+      //   DIAG   — visitor scrolled into the Diagnostics section at
+      //            the bottom; dash shows the diagnostics scene.
+      // Resolved deterministically on every scroll tick (rAF-throttled)
+      // from scrollTop + slide / diag offsets.
+      let scrollRaf = 0;
+      let activeRegion = null;          // null | 'idle' | 'slide' | 'diag'
+      const ACTIVE_LINE_PX = 140;       // focal line offset inside .read
+      const SCENE_DIAGNOSTICS = 13;     // mirrors SCENE_MAP.diagnostics
+
+      const pinCard = document.querySelector('.pin-card');
+      const diagSection = document.getElementById('diag-section');
+      const SCENE_DASHBOARD = 6;
+
+      function setIdle() {
+        // Already idle — skip the WASM round-trip (set_scene + step
+        // + freezeSim every scroll frame would tank performance and
+        // can interrupt in-flight smooth scrolls from sidebar jumps).
+        if (activeRegion === 'idle') return;
+        activeRegion = 'idle';
+        activeIdx = -1;
+        slidesEl.querySelectorAll('.slide').forEach((el) => el.classList.remove('is-active'));
+        diagSection?.classList.remove('is-active');
+        pinCard.classList.add('is-idle');
+        pinCard.classList.remove('is-diag');
+        pinTarget.textContent = '— · idle';
+        pinCaption.innerHTML = `
+          <span class="pc-eyebrow">Awaiting CAN bus</span>
+          Scroll down to begin the tour. The dash will come alive on slide 01.
+        `;
+        sb.runner?.pause();
+        // Tell the firmware sim to inject zeros instead of running
+        // its drive-cycle. Then set the scene, tick LVGL once so
+        // the dashboard layout paints with the zeroed signals, and
+        // freeze the rAF so it stays static.
+        sb.mod?._sandbox_set_dashboard_frozen?.(1);
+        sb.mod?._sandbox_set_scene?.(SCENE_DASHBOARD);
+        sb.mod?._sandbox_step?.();
+        sb.freezeSim?.();
+      }
+
+      function setSlide(idx) {
+        if (activeRegion === 'slide' && idx === activeIdx) return;
+        activeRegion = 'slide';
+        activeIdx = idx;
+        diagSection?.classList.remove('is-active');
+        pinCard.classList.remove('is-idle');
+        pinCard.classList.remove('is-diag');
+        slidesEl.querySelectorAll('.slide').forEach((el) => {
+          el.classList.toggle('is-active', Number(el.dataset.idx) === idx);
+        });
+        // Re-enable the rAF tick — the dashboard scene was frozen
+        // while in idle, so without resume the new step's scene
+        // wouldn't paint. Also unfreeze the dashboard sim so widgets
+        // visible behind any wizard overlay get live data again.
+        sb.mod?._sandbox_set_dashboard_frozen?.(0);
+        sb.resumeSim?.();
+        if (tourLoaded) sb.jumpStep(idx);
+      }
+
+      function setDiag() {
+        if (activeRegion === 'diag') return;
+        activeRegion = 'diag';
+        activeIdx = -1;
+        slidesEl.querySelectorAll('.slide').forEach((el) => el.classList.remove('is-active'));
+        diagSection?.classList.add('is-active');
+        pinCard.classList.remove('is-idle');
+        pinCard.classList.add('is-diag');
+        pinTarget.textContent = '— · diagnostics';
+        pinCaption.innerHTML = `
+          <span class="pc-eyebrow">Live · Diagnostics</span>
+          Reading the bus directly. Frame counter and error totals stream into the
+          table on the left.
+        `;
+        // Park the runner so it doesn't try to advance us off this scene,
+        // then drop the dash to the WASM diagnostics screen directly.
+        sb.runner?.pause();
+        sb.resumeSim?.();      // ensure rAF is running so the scene paints
+        sb.mod?._sandbox_set_scene?.(SCENE_DIAGNOSTICS);
+      }
+
+      function computeRegion() {
+        const slides = slidesEl.querySelectorAll('.slide');
+        const cutoff = read.scrollTop + ACTIVE_LINE_PX;
+
+        // DIAG region wins whenever the visitor crosses into it.
+        if (diagSection && cutoff >= diagSection.offsetTop) {
+          return { region: 'diag' };
+        }
+
+        if (!slides.length) return { region: 'idle' };
+
+        // Above slide 01 → idle.
+        if (cutoff < slides[0].offsetTop) return { region: 'idle' };
+
+        // Otherwise: pick the LAST slide whose top has crossed the line.
+        let pick = 0;
+        for (let i = 0; i < slides.length; i++) {
+          if (slides[i].offsetTop <= cutoff) pick = i;
+          else break;
+        }
+        return { region: 'slide', idx: pick };
+      }
+
+      function onScrollTick() {
+        scrollRaf = 0;
+        if (!tourLoaded) return;
+        const r = computeRegion();
+        if (r.region === 'idle') setIdle();
+        else if (r.region === 'diag') setDiag();
+        else setSlide(r.idx);
+      }
+      function scheduleScrollTick() {
+        if (scrollRaf) return;
+        scrollRaf = requestAnimationFrame(onScrollTick);
+      }
+      read.addEventListener('scroll', scheduleScrollTick, { passive: true });
+
+      function setActiveSidebar(file) {
+        currentFile = file;
+        tourList.querySelectorAll('.sidenav-item').forEach((el) => {
+          el.classList.toggle('is-active', el.dataset.file === file);
+        });
+        const opt = [...select.options].find((o) => o.dataset.file === file);
+        if (opt) select.value = opt.value;
+        const meta = tourById[file];
+        if (meta) {
+          crumbTitle.textContent = meta.title;
+          crumbMeta.textContent  = `~${meta.durationSec}s · no prior knowledge`;
+          heroTitle.innerHTML = `${meta.title}<em>.</em>`;
+          heroBlurb.textContent = meta.description ||
+            'Scroll the column to walk through the tour — each slide drives the dash on the right.';
+        }
+      }
+
+      async function loadTour(file) {
         await waitForReady();
-        await sb.setScript(select.value);
-        // New tour = reset to the idle intro state. Park the dash on
-        // the dashboard scene so it isn't mid-wizard when the visitor
-        // hasn't pressed Play yet.
+        await sb.setScript(`/tours/${file}`);
+        setActiveSidebar(file);
+
+        activeIdx  = -1;
+        activeRegion = null;
+        tourLoaded = false;
+        endCardHost.innerHTML = '';
+        read.scrollTop = 0;
+
         sb.runner.pause();
-        sb.mod?._sandbox_set_scene?.(6); // SCENE_DASHBOARD
-        hero.classList.remove('playing');
-        heroTitle.textContent = select.selectedOptions[0].dataset.title;
-        captionEl.textContent = 'Press Play to begin.';
-        stepLabel.textContent = '—';
-        setPlayIcon(false);
+
+        buildSlides(sb.script);
+        tourLoaded = true;
+        // Leave the dash in idle. The user wants the "---" placeholder
+        // until they scroll into slide 01, where the CAN scan begins.
+        setIdle();
+      }
+
+      select.addEventListener('change', () => {
+        const file = select.selectedOptions[0].dataset.file;
+        loadTour(file);
       });
 
-      // Initial title matches the default tour so the eyebrow/title
-      // pair lines up with what will actually play.
-      await waitForReady();
-      heroTitle.textContent = sb.script?.title ?? 'Your dash, in the browser.';
-      startBtn.disabled = false;
-      skipBtn.disabled  = false;
-
-      // Bridge sandbox events to our right-column UI.
       sb.addEventListener('caption', (e) => {
-        captionEl.textContent = e.detail || '';
+        const text = e.detail || '';
+        const idx  = activeIdx >= 0 ? activeIdx : 0;
+        const total = sb.script?.steps.length ?? 0;
+        pinCaption.innerHTML = `
+          <span class="pc-eyebrow">Now narrating · ${String(idx + 1).padStart(2,'0')} / ${total}</span>
+          ${text}
+        `;
       });
       sb.addEventListener('step', (e) => {
         const total = sb.script?.steps.length ?? 0;
-        stepLabel.textContent = `${e.detail.index + 1} / ${total}`;
+        const i = e.detail.index;
+        stepLabel.textContent = `${i + 1} / ${total}`;
+        const step = e.detail.step;
+        const tag = step?.scene || step?.target || `step ${i + 1}`;
+        pinTarget.textContent = `${String(i + 1).padStart(2, '0')} · ${tag}`;
       });
-      sb.addEventListener('playstate', (e) => setPlayIcon(e.detail.playing));
       sb.addEventListener('end', () => {
-        setPlayIcon(false);
-        captionEl.textContent = 'Tour complete.';
+        pinCaption.innerHTML = `<span class="pc-eyebrow">Tour complete</span>You've reached the end. Pick the next tour from the sidebar.`;
+        showEndCard();
       });
 
-      function setPlayIcon(playing) {
-        playIcon.innerHTML = playing ? ICON_PAUSE : ICON_PLAY;
-        playLabel.textContent = playing ? 'Pause' : 'Play';
-        playBtn.setAttribute('aria-label', playing ? 'Pause' : 'Play');
+      function showEndCard() {
+        const meta = tourById[currentFile];
+        const allFiles = manifest.tours.map(t => t.file);
+        const idx = allFiles.indexOf(currentFile);
+        const next = manifest.tours[(idx + 1) % manifest.tours.length];
+        const total = sb.script?.steps.length ?? 0;
+        endCardHost.innerHTML = `
+          <div class="end-card">
+            <div class="eyebrow">Tour complete</div>
+            <h2>You've finished <em style="font-style:normal;font-weight:700;color:var(--accent);">${meta?.title || 'the tour'}</em>.</h2>
+            <p>The dash is yours to keep poking — every tap, every menu, every setting is the
+            real firmware. Replay this tour, or pick the next one to keep going.</p>
+            <div class="end-stats">
+              <div class="end-stat"><span>${total}</span><span>steps covered</span></div>
+              <div class="end-stat"><span>~${meta?.durationSec ?? 0}s</span><span>read time</span></div>
+              <div class="end-stat"><span>0</span><span>setup required</span></div>
+            </div>
+            <button class="next-card" id="next-tour-card" type="button">
+              <div class="next-card-meta">${String(((idx + 1) % manifest.tours.length) + 1).padStart(2, '0')} · ${next.title} · ${next.durationSec}s</div>
+              <div class="next-card-title">${next.description}</div>
+              <div class="next-card-cta">Start tour <span>→</span></div>
+            </button>
+            <div class="end-foot">
+              <button class="btn" id="replay-btn" type="button">↺ Replay from the top</button>
+              <a class="btn" href="https://studio.realtimedatamonitoring.com.au/">Open Studio →</a>
+            </div>
+          </div>
+        `;
+        endCardHost.querySelector('#next-tour-card').addEventListener('click', () => loadTour(next.file));
+        endCardHost.querySelector('#replay-btn').addEventListener('click', () => {
+          read.scrollTo({ top: 0, behavior: 'smooth' });
+        });
       }
 
-      startBtn.addEventListener('click', () => {
-        hero.classList.add('playing');
-        sb.start();
+      function scrollToSlide(idx) {
+        const el = slidesEl.querySelector(`.slide[data-idx="${idx}"]`);
+        if (!el) return;
+        // Use read.scrollTo() not el.scrollIntoView() — the latter
+        // walks ancestors and nudges body/html even though we set
+        // overflow:hidden on them, which pushes the topbar offscreen.
+        read.scrollTo({ top: el.offsetTop - 12, behavior: 'smooth' });
+      }
+
+      backBtn.addEventListener('click', () => {
+        scrollToSlide(Math.max(0, activeIdx - 1));
       });
-      skipBtn.addEventListener('click', () => {
-        // Jump straight to the running dashboard — matches the old
-        // in-canvas Skip button behaviour.
-        hero.classList.add('playing');
-        sb.pause();
-        sb.mod?._sandbox_set_scene?.(6); // SCENE_DASHBOARD
-        captionEl.textContent = 'Skipped to the dashboard. Explore freely.';
+      nextBtn.addEventListener('click', () => {
+        const total = sb.script?.steps.length ?? 0;
+        scrollToSlide(Math.min(total - 1, activeIdx + 1));
       });
-      playBtn.addEventListener('click', () => sb.start());
-      backBtn.addEventListener('click', () => sb.backStep());
-      nextBtn.addEventListener('click', () => sb.nextStep());
-      restartBtn.addEventListener('click', () => sb.restart());
+      restartBtn.addEventListener('click', () => {
+        endCardHost.innerHTML = '';
+        read.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement) return;
+        if (e.key === 'ArrowDown' || e.key === 'PageDown') {
+          e.preventDefault();
+          const total = sb.script?.steps.length ?? 0;
+          scrollToSlide(Math.min(total - 1, activeIdx + 1));
+        } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+          e.preventDefault();
+          scrollToSlide(Math.max(0, activeIdx - 1));
+        } else if (e.key === 'Home') {
+          e.preventDefault();
+          read.scrollTo({ top: 0, behavior: 'smooth' });
+        } else if (e.key === 'r' || e.key === 'R') {
+          e.preventDefault();
+          read.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      });
+
+      await waitForReady();
+      const initialMeta = tourById[currentFile];
+      if (initialMeta) {
+        heroTitle.innerHTML = `${initialMeta.title}<em>.</em>`;
+        crumbTitle.textContent = initialMeta.title;
+        crumbMeta.textContent  = `~${initialMeta.durationSec}s · no prior knowledge`;
+        heroBlurb.textContent  = initialMeta.description;
+      }
+      buildSlides(sb.script);
+      tourLoaded = true;
+      // Land the visitor in idle: dash shows the static "---"
+      // placeholder, no sim running. CAN scan kicks in only when
+      // they scroll to slide 01.
+      setIdle();
     })();
   </script>
 </body>

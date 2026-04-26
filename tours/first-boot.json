@@ -4,20 +4,20 @@
   "steps": [
     {
       "scene": "step1",
-      "voice": "First boot — the dash scans your CAN bus at four common bitrates.",
+      "voice": "First boot — the dash auto-scans CAN at four common bitrates: 125, 250, 500 and 1000 kilobits per second. With the ECU powered and broadcasting, this usually locks on in two to four seconds.",
       "highlight": { "x": 120, "y": 175, "w": 560, "h": 95 },
       "wait": 4000
     },
     {
       "scene": "step1_done",
-      "voice": "500 kilobits — the most common automotive rate. Apply.",
+      "voice": "Lock-on confirmed — tap Apply to commit the matched bitrate. If the scan times out, swap CAN-H and CAN-L at the connector (the most common mistake), or jump down to the diagnostics section at the bottom of this page.",
       "highlight": { "x": 150, "y": 292, "w": 500, "h": 44 },
       "click": [400, 313],
       "delay": 1200
     },
     {
       "scene": "step2",
-      "voice": "Pick your ECU. Presets cover Haltech, Link, MaxxECU, MegaSquirt, ECU Master, Ford, plus an RDM-7 Internal calculated-gear option.",
+      "voice": "Pick your ECU. Built-in presets cover MaxxECU, Haltech Nexus and Elite, Link G4 plus, Ford BA / BF / FG, ECUMaster, MegaSquirt, and a GM GEN IV LS profile. Don't see yours? Pick Custom — you can also DBC-import later.",
       "highlight": { "x": 120, "y": 155, "w": 560, "h": 90 },
       "wait": 5500
     },
@@ -29,7 +29,7 @@
     },
     {
       "scene": "step3",
-      "voice": "Three ways to connect to the web editor: Wi-Fi, USB, or the dash's own hotspot.",
+      "voice": "Three ways to reach the web editor — Home Wi-Fi if you've got signal in the garage, USB cable for the desktop Studio app, or the dash's own hotspot when you're off-grid. Pick whichever matches your setup.",
       "wait": 4200
     },
     {
@@ -47,7 +47,7 @@
     },
     {
       "scene": "wifi_connected",
-      "voice": "Connected. Your dash's IP shows up in Device Settings for the web editor.",
+      "voice": "Connected. The dash's IP is now in Device Settings — there's a Show QR button there too, point your phone camera at it and the editor opens automatically.",
       "wait": 4000
     },
     {
@@ -56,8 +56,8 @@
       "wait": 5000
     },
     {
-      "voice": "You're ready to drive.",
-      "wait": 2200
+      "voice": "You're ready to drive. Long-press the RDM logo any time to reach Device Settings, or two-finger tap to flip night mode.",
+      "wait": 3000
     }
   ]
 }

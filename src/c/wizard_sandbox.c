@@ -1072,9 +1072,38 @@ static void _drive_state(double ms, float *rpm, float *speed, float *throttle, i
     if (*throttle > 100) *throttle = 100;
 }
 
+/* Freeze flag: when true, _dash_tick injects zeros for every signal
+ * instead of running the drive-cycle simulation. The host page sets
+ * this via sandbox_set_dashboard_frozen() so the dash can show its
+ * default layout in a "no CAN bus / engine off" state on initial paint
+ * (and any time the visitor scrolls back into the hero region).
+ *
+ * Defaults to true so the very first frame after WASM init renders
+ * with all zeros — there's no race where the host has to win a
+ * setter call before the LVGL timer fires its first tick. */
+static bool s_dash_frozen = true;
+
+/* Force-stale all signals immediately (no waiting on the 2-second
+ * timeout). Widget renderers fall back to their "---" placeholder
+ * whenever a signal is stale, which is exactly the no-CAN-bus look
+ * we want during the hero / idle region. */
+extern void signal_mark_all_stale(void);
+
+EMSCRIPTEN_KEEPALIVE
+void sandbox_set_dashboard_frozen(int frozen) {
+    s_dash_frozen = (frozen != 0);
+    if (s_dash_frozen) signal_mark_all_stale();
+}
+
 static void _dash_tick(lv_timer_t *t) {
     (void)t;
     if (!s_dash_screen || !lv_obj_is_valid(s_dash_screen)) return;
+
+    /* Frozen mode: skip the entire drive-cycle. Signals stay stale
+     * (set by sandbox_set_dashboard_frozen via signal_mark_all_stale)
+     * and every widget falls through to its "---" placeholder. */
+    if (s_dash_frozen) return;
+
     double ms = emscripten_get_now() - s_dash_started_ms;
 
     float rpm, speed, throttle;

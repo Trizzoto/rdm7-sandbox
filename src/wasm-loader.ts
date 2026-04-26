@@ -22,6 +22,13 @@ export interface SandboxModule {
   _sandbox_open_widget_config?(): void;
   _sandbox_close_widget_config?(): void;
 
+  /** Freeze the dashboard sim. When set to 1, the firmware's drive-
+   *  cycle injector (`_dash_tick` in wizard_sandbox.c) injects zero
+   *  for every signal — RPM 0, speed 0, all temperatures 0 — so the
+   *  dash renders its default layout with everything at rest. Set to
+   *  0 to resume the synthetic drive cycle. */
+  _sandbox_set_dashboard_frozen?(frozen: number): void;
+
   /** Emscripten-provided call helpers. */
   ccall: (
     fn: string,

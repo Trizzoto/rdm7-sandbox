@@ -508,7 +508,14 @@ export class DashSandboxElement extends HTMLElement {
     }
 
     this.loadingEl.style.display = 'none';
-    this.startRaf();
+    /* In `controlled` mode the host drives the rAF tick (see
+     * freezeSim / resumeSim below). Auto-starting it here would let
+     * the sim advance for several frames before the host's first
+     * setIdle call lands — hosts that want zero values on initial
+     * paint never get them. Free-play mode still auto-runs. */
+    if (!this.hasAttribute('controlled')) {
+      this.startRaf();
+    }
 
     const scriptUrl = this.getAttribute('script');
     if (!scriptUrl) {
@@ -582,7 +589,36 @@ export class DashSandboxElement extends HTMLElement {
   public pause()   { if (this.isPlaying) void this.togglePlay(); }
   public nextStep(){ if (this.script) void this.runner?.next(this.script); }
   public backStep(){ if (this.script) this.runner?.back(this.script); }
-  public restart() { if (this.script) void this.runner?.play(this.script, 0); }
+  /** Restart from step 0. Mirrors togglePlay's playing-state side-effects
+   *  so hosts get a `playstate` event and the in-canvas play icon flips
+   *  to Pause — earlier this called runner.play directly and silently
+   *  desynced the chrome. */
+  public restart() {
+    if (!this.script) return;
+    this.runner?.pause();
+    this.setPlayLabel(true);
+    void this.runner?.play(this.script, 0);
+  }
+  /** Seek to an exact step (paused). Used by scrollspy hosts so the
+   *  dash mirrors the visitor's scroll position without auto-playing
+   *  the step's voice / clicks / drags. */
+  public jumpStep(idx: number) { if (this.script) void this.runner?.jumpTo(this.script, idx); }
+
+  /** Freeze the LVGL frame loop. With the rAF cancelled, _sandbox_step
+   *  is no longer called, so the sim values stop advancing — the dash
+   *  is "static": last-rendered frame stays on screen. Used by scrollspy
+   *  hosts that want to show the dashboard layout without the values
+   *  animating before the visitor has scrolled into the tour. */
+  public freezeSim() {
+    if (this.rafHandle) cancelAnimationFrame(this.rafHandle);
+    this.rafHandle = 0;
+  }
+  /** Resume the LVGL frame loop after freezeSim(). No-op if already
+   *  running. Required before any new scene change is expected to
+   *  paint, since renders are driven by the rAF tick. */
+  public resumeSim() {
+    if (!this.rafHandle && this.mod) this.startRaf();
+  }
 
   /** Make the startup overlay visible with the current tour's metadata. */
   private showStartup(script: TourScript) {
@@ -624,11 +660,21 @@ export class DashSandboxElement extends HTMLElement {
     this.overlay.hide();
 
     // Re-instantiate the runner so index + lastScene reset cleanly.
+    // CRITICAL: mirror connectedCallback's event bridge here too —
+    // host pages in `controlled` mode rely on `step` and `end` events
+    // to keep their chrome in sync. Without the dispatchEvent calls
+    // below, switching tours via setScript silently breaks the bridge.
     const pointer = new PointerInjector(this.mod);
     this.runner = new TutorialRunner(pointer, this.overlay, this.voice, this.mod, {
       onCaption: (c) => this.setCaption(c),
-      onStep:    (i, s) => this.handleStepChange(i, s),
-      onEnd:     () => this.handleTourEnd(),
+      onStep:    (i, s) => {
+        this.handleStepChange(i, s);
+        this.dispatchEvent(new CustomEvent('step', { detail: { index: i, step: s } }));
+      },
+      onEnd: () => {
+        this.handleTourEnd();
+        this.dispatchEvent(new CustomEvent('end'));
+      },
     });
     (this as any).runner = this.runner;
     (this as any).script = this.script;

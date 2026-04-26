@@ -115,18 +115,29 @@ export class TutorialRunner {
    *  left. Instead we jump the scene, set the caption/highlight for
    *  the target step, and wait for the user to hit Play again. */
   async back(script: TourScript) {
+    await this.jumpTo(script, this.index - 1);
+  }
+
+  /** Jump to an arbitrary step and PAUSE — used by scroll-driven hosts.
+   *  Same rationale as `back()`: we never want to re-execute clicks /
+   *  drags / voice as a side effect of the user just scrolling past a
+   *  section. Apply the scene, paint the highlight, fire the caption
+   *  + step events so chrome can mirror the position; that's it. */
+  async jumpTo(script: TourScript, target: number): Promise<void> {
     this.pause();
-    const target = Math.max(0, this.index - 1);
-    this.index = target;
-    const step = script.steps[target];
-    if (step) {
-      const scene = this.sceneAt(script, target);
-      if (scene) this.applyScene(scene);
-      if (step.highlight) this.overlay.show(step.highlight);
-      else this.overlay.hide();
-      if (step.voice) this.events.onCaption?.(step.voice);
-      this.events.onStep?.(target, step);
+    const idx = Math.max(0, Math.min(target, script.steps.length - 1));
+    this.index = idx;
+    const step = script.steps[idx];
+    if (!step) return;
+    const scene = this.sceneAt(script, idx);
+    if (scene) this.applyScene(scene);
+    if (step.scrollSection && this.mod._sandbox_device_settings_scroll) {
+      this.mod._sandbox_device_settings_scroll(this.scrollSectionId(step.scrollSection));
     }
+    if (step.highlight) this.overlay.show(step.highlight);
+    else this.overlay.hide();
+    if (step.voice || step.caption) this.events.onCaption?.(step.caption ?? step.voice ?? '');
+    this.events.onStep?.(idx, step);
   }
 
   /** Map a tour-script scroll target onto the DS_SECTION_* id the
@@ -151,7 +162,12 @@ export class TutorialRunner {
     if (step.highlight) this.overlay.show(step.highlight);
     else this.overlay.hide();
 
-    if (step.caption) this.events.onCaption?.(step.caption);
+    /* Caption path: explicit caption wins, otherwise voice doubles
+     * as the visible caption. (Voice playback is silent — see
+     * voiceover.ts — so without this fallback, host chrome that
+     * relies on the `caption` event never updates during autoplay.) */
+    const captionText = step.caption ?? step.voice ?? null;
+    if (captionText !== null) this.events.onCaption?.(captionText);
 
     const voicePromise = step.voice ? this.voice.speak(step.voice) : Promise.resolve();
 
