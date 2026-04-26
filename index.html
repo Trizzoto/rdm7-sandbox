@@ -1112,12 +1112,25 @@
       display: block;
     }
 
-    /* Narrow-window fallback: when usable width is below 760, hide
-     * the dash and let the slides take full width. The user said to
-     * focus on desktop, but this avoids a broken paint on laptops. */
+    /* Mobile / narrow-window: stack vertically with the dash pinned
+     * to the top half of the viewport and the reading column scrolling
+     * underneath. Pin takes ~45vh so the dash stays legible; .read
+     * fills the rest and is the only thing that scrolls (same as
+     * desktop, just rotated 90°). */
     @media (max-width: 760px) {
-      .main { grid-template-columns: 1fr; }
-      .pin { display: none; }
+      .main {
+        grid-template-columns: 1fr;
+        grid-template-rows: 45vh minmax(0, 1fr);
+      }
+      .pin {
+        grid-row: 1;
+        height: auto;
+        border-left: 0;
+        border-bottom: 1px solid var(--rule);
+        padding: 8px 12px;
+      }
+      .read { grid-row: 2; }
+      .pin-card { max-height: 100%; }
     }
   </style>
 </head>
