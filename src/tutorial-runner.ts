@@ -98,6 +98,15 @@ export class TutorialRunner {
     if (typeof code === 'number') this.mod._sandbox_set_scene(code);
   }
 
+  /** Clear the cached scene so the next applyScene() call always
+   *  forwards to set_scene. Required when a host bypasses the runner
+   *  to set a scene directly (e.g. scroll-driven idle / diagnostics);
+   *  without this, scrolling back into a tour leaves the dash stuck on
+   *  the last externally-set scene because applyScene short-circuits. */
+  public invalidateSceneCache(): void {
+    this.lastScene = null;
+  }
+
   pause() {
     this.cancelToken++;
     this.voice.cancel();

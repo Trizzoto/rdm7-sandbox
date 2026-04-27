@@ -469,7 +469,7 @@ export class DashSandboxElement extends HTMLElement {
         // running default layout, not the half-dimmed CAN Bus Setup
         // card. Mirrors the device behaviour of "first_run_done" being
         // set — wizard never shows, you see the dashboard immediately.
-        this.mod?._sandbox_set_scene(SCENE_MAP.dashboard);
+        this.setScene(SCENE_MAP.dashboard);
       }
     });
 
@@ -576,7 +576,7 @@ export class DashSandboxElement extends HTMLElement {
       /* Park the WASM on the dashboard so the wizard's scan animation
        * doesn't auto-play in the visitor's face. The first Start Tour
        * click resets to step1 anyway. */
-      this.mod?._sandbox_set_scene?.(SCENE_MAP.dashboard);
+      this.setScene(SCENE_MAP.dashboard);
     } else {
       this.showStartup(this.script);
     }
@@ -603,6 +603,16 @@ export class DashSandboxElement extends HTMLElement {
    *  dash mirrors the visitor's scroll position without auto-playing
    *  the step's voice / clicks / drags. */
   public jumpStep(idx: number) { if (this.script) void this.runner?.jumpTo(this.script, idx); }
+
+  /** Set a scene directly on the WASM and invalidate the runner's
+   *  scene-cache. Use this for any scene change that originates
+   *  outside the tour (scroll-driven idle / diagnostics). Without
+   *  the cache invalidation, a subsequent jumpStep() may short-
+   *  circuit because the runner thinks the scene is already set. */
+  public setScene(code: number) {
+    this.mod?._sandbox_set_scene?.(code);
+    this.runner?.invalidateSceneCache();
+  }
 
   /** Freeze the LVGL frame loop. With the rAF cancelled, _sandbox_step
    *  is no longer called, so the sim values stop advancing — the dash
@@ -681,7 +691,7 @@ export class DashSandboxElement extends HTMLElement {
 
     // Reset the wizard to its fresh-boot scene so every tour starts
     // from the same visual baseline.
-    this.mod._sandbox_set_scene(0);
+    this.setScene(0);
 
     // Re-prompt with the new tour's title so the user knows what
     // they're about to play.

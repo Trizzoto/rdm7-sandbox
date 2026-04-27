@@ -1797,7 +1797,7 @@
         // the dashboard layout paints with the zeroed signals, and
         // freeze the rAF so it stays static.
         sb.mod?._sandbox_set_dashboard_frozen?.(1);
-        sb.mod?._sandbox_set_scene?.(SCENE_DASHBOARD);
+        sb.setScene?.(SCENE_DASHBOARD);
         sb.mod?._sandbox_step?.();
         sb.freezeSim?.();
       }
@@ -1839,7 +1839,7 @@
         // then drop the dash to the WASM diagnostics screen directly.
         sb.runner?.pause();
         sb.resumeSim?.();      // ensure rAF is running so the scene paints
-        sb.mod?._sandbox_set_scene?.(SCENE_DIAGNOSTICS);
+        sb.setScene?.(SCENE_DIAGNOSTICS);
       }
 
       function computeRegion() {
