@@ -15,14 +15,6 @@
       "group": "setup"
     },
     {
-      "id": "quick",
-      "title": "60-Second Quick Walkthrough",
-      "file": "quick.json",
-      "description": "Marketing-grade condensed wizard tour — under a minute.",
-      "durationSec": 30,
-      "group": "setup"
-    },
-    {
       "id": "wifi-setup",
       "title": "Wi-Fi, Hotspot & OTA",
       "file": "wifi-setup.json",

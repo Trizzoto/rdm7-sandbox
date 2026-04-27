@@ -118,43 +118,6 @@
       .topbar-right .nav-link { display: none; }
     }
 
-    .tour-pill {
-      display: inline-flex; align-items: center; gap: 8px;
-      border: 1px solid var(--rule);
-      border-radius: 4px;
-      padding: 5px 8px 5px 12px;
-      background: white;
-      font-size: 12.5px;
-      cursor: pointer;
-      position: relative;
-      max-width: 280px;
-    }
-    .tour-pill-label {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase;
-      color: var(--ink-3);
-      flex-shrink: 0;
-    }
-    .tour-pill select {
-      appearance: none; -webkit-appearance: none;
-      background: transparent; border: 0; outline: 0;
-      font-family: 'Sora', ui-sans-serif, system-ui, sans-serif;
-      font-weight: 500;
-      font-size: 12.5px;
-      color: var(--ink);
-      padding: 0 14px 0 0;
-      cursor: pointer;
-      max-width: 200px;
-      text-overflow: ellipsis;
-      overflow: hidden;
-      white-space: nowrap;
-    }
-    .tour-pill::after {
-      content: '▾';
-      position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
-      color: var(--ink-3); font-size: 9px; pointer-events: none;
-    }
-
     /* ─── Shell layout ─────────────────────────────────────────── */
     .shell {
       display: grid;
@@ -1147,12 +1110,7 @@
       </div>
       <div class="topbar-mid"></div>
       <div class="topbar-right">
-        <div class="tour-pill">
-          <span class="tour-pill-label">Tour</span>
-          <select id="tour-select" aria-label="Select tour"></select>
-        </div>
         <a class="nav-link" href="https://studio.realtimedatamonitoring.com.au/">Studio</a>
-        <a class="nav-link" href="https://github.com/Trizzoto/rdm7-sandbox">GitHub</a>
       </div>
     </nav>
 
@@ -1609,7 +1567,6 @@
     (async () => {
       const manifest = await fetch('/tours/manifest.json').then(r => r.json());
 
-      const select         = document.getElementById('tour-select');
       const tourList       = document.getElementById('tour-list');
       const sb             = document.getElementById('sb');
       const read           = document.getElementById('read');
@@ -1741,16 +1698,6 @@
         .sidenav.is-hover .tour-group-title { opacity: 1 !important; }
       `;
       document.head.appendChild(groupHeadStyle);
-
-      // ─── Topbar select ───
-      manifest.tours.forEach((t) => {
-        const o = document.createElement('option');
-        o.value = `/tours/${t.file}`;
-        o.textContent = `${t.title} — ${t.durationSec}s`;
-        o.dataset.file = t.file;
-        if (t.file === currentFile) o.selected = true;
-        select.appendChild(o);
-      });
 
       const waitForReady = () => new Promise(r => {
         if (sb.runner) return r();
@@ -1937,8 +1884,6 @@
         tourList.querySelectorAll('.sidenav-item').forEach((el) => {
           el.classList.toggle('is-active', el.dataset.file === file);
         });
-        const opt = [...select.options].find((o) => o.dataset.file === file);
-        if (opt) select.value = opt.value;
         const meta = tourById[file];
         if (meta) {
           crumbTitle.textContent = meta.title;
@@ -1968,11 +1913,6 @@
         // until they scroll into slide 01, where the CAN scan begins.
         setIdle();
       }
-
-      select.addEventListener('change', () => {
-        const file = select.selectedOptions[0].dataset.file;
-        loadTour(file);
-      });
 
       sb.addEventListener('caption', (e) => {
         const text = e.detail || '';

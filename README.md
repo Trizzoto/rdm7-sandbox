@@ -95,7 +95,7 @@ Ship `rdm7-sandbox.wasm` + `rdm7-sandbox.js` (from the package's `public/` direc
 
 ```js
 const sb = document.querySelector('dash-sandbox');
-await sb.setScript('/tours/quick.json');  // hot-swap tours without reboot
+await sb.setScript('/tours/first-boot.json');  // hot-swap tours without reboot
 sb.runner.play(sb.script, 0);              // programmatic control
 sb.runner.pause();
 sb.runner.next(sb.script);
@@ -179,8 +179,7 @@ rdm7-sandbox/
 ├── stubs/                 ESP-IDF shim headers + small impl
 ├── tours/
 │   ├── manifest.json       tour registry
-│   ├── first-boot.json     full walkthrough (~45s)
-│   └── quick.json          marketing-grade condensed tour (~30s)
+│   └── first-boot.json     full walkthrough (~45s)
 ├── scripts/               setup / sync / build
 └── docs/
     ├── TOUR_FORMAT.md      authoring spec
