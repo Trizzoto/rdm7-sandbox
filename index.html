@@ -377,6 +377,24 @@
       margin: 0 0 14px;
       line-height: 1.55;
     }
+    .qs-progress {
+      display: inline-flex; align-items: center;
+      margin-left: 8px;
+      padding: 1px 8px;
+      border: 1px solid var(--rule);
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; letter-spacing: 0.06em;
+      color: var(--ink-3);
+      background: var(--paper-2);
+      vertical-align: 2px;
+      transition: color 160ms, border-color 160ms, background 160ms;
+    }
+    .qs-progress.is-complete {
+      color: var(--accent-ink);
+      border-color: var(--accent);
+      background: rgba(200,50,42,0.08);
+    }
     .qs-steps {
       list-style: none;
       padding: 0; margin: 0 0 14px;
@@ -392,7 +410,27 @@
       border-radius: 6px;
       background: var(--paper-2);
       display: flex; flex-direction: column; gap: 4px;
+      cursor: pointer;
+      user-select: none;
+      position: relative;
+      transition: border-color 120ms, background 120ms;
     }
+    .qs-steps li:hover { border-color: var(--rule-strong); }
+    .qs-steps li:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .qs-steps li.is-done {
+      background: rgba(46,125,79,0.06);
+      border-color: rgba(46,125,79,0.32);
+    }
+    .qs-steps li.is-done::after {
+      content: '✓';
+      position: absolute; top: 8px; right: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: #2e7d4f;
+      font-weight: 700;
+    }
+    .qs-steps li.is-done b { color: var(--ink-3); }
+    .qs-steps li.is-done span { color: var(--ink-3); }
     .qs-steps li::before {
       content: counter(qsstep, decimal-leading-zero);
       font-family: 'JetBrains Mono', monospace;
@@ -424,7 +462,19 @@
       border-radius: 6px;
       background: white;
       display: flex; flex-direction: column; gap: 4px;
+      text-align: left;
+      font: inherit;
+      cursor: pointer;
+      transition: border-color 120ms, background 120ms, box-shadow 120ms;
     }
+    .qs-option:hover { border-color: var(--rule-strong); }
+    .qs-option:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .qs-option.is-active {
+      border-color: var(--accent);
+      box-shadow: inset 0 0 0 1px var(--accent);
+      background: rgba(200,50,42,0.04);
+    }
+    .qs-option.is-active .qs-option-name { color: var(--accent-ink); }
     .qs-option-name {
       font-family: 'Sora', ui-sans-serif, sans-serif;
       font-weight: 600;
@@ -1179,64 +1229,61 @@
              options for getting Studio open. Sits between the
              hero and the slides so visitors see the shape of
              the journey before scrolling into the tour. -->
-        <aside class="quickstart" aria-label="Quickstart">
+        <aside class="quickstart" aria-label="Quickstart" id="quickstart" hidden>
           <div class="quickstart-eyebrow">Quickstart · 5 minutes</div>
           <h3>Box to live data, six steps.</h3>
           <p class="quickstart-lede">
             Most installs are running before the kettle finishes. The wizard handles
             CAN bus and ECU detection automatically — your only real choice is which
             of the three Studio paths suits your garage.
+            <span class="qs-progress" id="qs-progress" aria-live="polite"><span id="qs-progress-text">0 / 6</span>&nbsp;done</span>
           </p>
           <ol class="qs-steps">
-            <li>
+            <li tabindex="0" role="button" aria-pressed="false">
               <b>Wire 4 cables</b>
               <span>Red → +12 V switched · Black → ground · Green → CAN H · Yellow → CAN L</span>
             </li>
-            <li>
+            <li tabindex="0" role="button" aria-pressed="false">
               <b>Ignition on</b>
               <span>Dash boots straight into the First-Run Wizard.</span>
             </li>
-            <li>
+            <li tabindex="0" role="button" aria-pressed="false">
               <b>CAN auto-scan</b>
               <span>125 / 250 / 500 / 1000 kbps — locks on in 2–4 s.</span>
             </li>
-            <li>
+            <li tabindex="0" role="button" aria-pressed="false">
               <b>Pick your ECU</b>
               <span>MaxxECU, Haltech, Ford, GM GEN IV, Custom — the lot.</span>
             </li>
-            <li>
+            <li tabindex="0" role="button" aria-pressed="false">
               <b>Connect option</b>
               <span>Home Wi-Fi, USB cable, or the dash's own hotspot.</span>
             </li>
-            <li>
+            <li tabindex="0" role="button" aria-pressed="false">
               <b>Tap Finish</b>
               <span>Live data flowing. Done.</span>
             </li>
           </ol>
 
           <div class="quickstart-eyebrow" style="margin-top:6px;">How do you want to customise?</div>
-          <div class="qs-options">
-            <div class="qs-option">
+          <div class="qs-options" role="tablist">
+            <button class="qs-option" type="button" role="tab" aria-selected="false" data-option="wifi">
               <span class="qs-option-name">Home Wi-Fi</span>
               <span class="qs-option-best">Best when there's signal in the garage.</span>
               <span class="qs-option-cost">Phone keeps internet</span>
-            </div>
-            <div class="qs-option">
+            </button>
+            <button class="qs-option" type="button" role="tab" aria-selected="false" data-option="usb">
               <span class="qs-option-name">USB cable</span>
               <span class="qs-option-best">Best with a laptop and the desktop Studio.</span>
               <span class="qs-option-cost">No network needed</span>
-            </div>
-            <div class="qs-option">
+            </button>
+            <button class="qs-option" type="button" role="tab" aria-selected="false" data-option="hotspot">
               <span class="qs-option-name">Dash hotspot</span>
               <span class="qs-option-best">Best off-grid. Phone joins the dash directly.</span>
               <span class="qs-option-cost">Phone offline while connected</span>
-            </div>
+            </button>
           </div>
-          <div class="qs-foot">
-            <span><strong>SSID</strong> RDM7-XXXX</span>
-            <span><strong>Password</strong> rdm7dash</span>
-            <span><strong>URL</strong> http://192.168.4.1</span>
-          </div>
+          <div class="qs-foot" id="qs-foot" aria-live="polite"></div>
         </aside>
 
         <div class="slides" id="slides"></div>
@@ -1879,6 +1926,71 @@
       }
       read.addEventListener('scroll', scheduleScrollTick, { passive: true });
 
+      // ─── Quickstart interactivity ────────────────────────────────
+      // Two separate behaviours, both scoped to the first-boot tour
+      // (the only place .quickstart is shown):
+      //   1. Tickable steps — click / Space / Enter on a step toggles
+      //      .is-done; the progress badge in the lede updates.
+      //   2. Connection-option tabs — click a card to swap the SSID /
+      //      Password / URL footer to the connection method's specifics.
+      const quickstartEl   = document.getElementById('quickstart');
+      const qsStepEls      = document.querySelectorAll('.qs-steps li');
+      const qsProgressEl   = document.getElementById('qs-progress');
+      const qsProgressText = document.getElementById('qs-progress-text');
+      function refreshQsProgress() {
+        const total = qsStepEls.length;
+        const done  = document.querySelectorAll('.qs-steps li.is-done').length;
+        if (qsProgressText) qsProgressText.textContent = `${done} / ${total}`;
+        if (qsProgressEl) qsProgressEl.classList.toggle('is-complete', done === total && total > 0);
+      }
+      qsStepEls.forEach((el) => {
+        const toggle = () => {
+          el.classList.toggle('is-done');
+          el.setAttribute('aria-pressed', el.classList.contains('is-done') ? 'true' : 'false');
+          refreshQsProgress();
+        };
+        el.addEventListener('click', toggle);
+        el.addEventListener('keydown', (e) => {
+          if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle(); }
+        });
+      });
+      refreshQsProgress();
+
+      const qsOptionEls = document.querySelectorAll('.qs-option');
+      const qsFootEl    = document.getElementById('qs-foot');
+      const QS_CONN = {
+        wifi: [
+          ['Network',  'Your home Wi-Fi'],
+          ['Studio',   'studio.realtimedatamonitoring.com.au'],
+          ['Address',  'DHCP-assigned'],
+        ],
+        usb: [
+          ['Cable',    'USB-C, any data cable'],
+          ['Driver',   'None — Win / Mac / Linux'],
+          ['Studio',   'Desktop app'],
+        ],
+        hotspot: [
+          ['SSID',     'RDM7-XXXX'],
+          ['Password', 'rdm7dash'],
+          ['URL',      'http://192.168.4.1'],
+        ],
+      };
+      function selectQsOption(key) {
+        qsOptionEls.forEach((el) => {
+          const isActive = el.dataset.option === key;
+          el.classList.toggle('is-active', isActive);
+          el.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+        if (qsFootEl) {
+          const rows = QS_CONN[key] ?? [];
+          qsFootEl.innerHTML = rows.map(([k, v]) => `<span><strong>${k}</strong> ${v}</span>`).join('');
+        }
+      }
+      qsOptionEls.forEach((el) => {
+        el.addEventListener('click', () => selectQsOption(el.dataset.option));
+      });
+      selectQsOption('wifi');
+
       function setActiveSidebar(file) {
         currentFile = file;
         tourList.querySelectorAll('.sidenav-item').forEach((el) => {
@@ -1892,6 +2004,9 @@
           heroBlurb.textContent = meta.description ||
             'Scroll the column to walk through the tour — each slide drives the dash on the right.';
         }
+        // Quickstart card is specific to the First-Boot Walkthrough — every
+        // other tour assumes the visitor is already past that intro.
+        if (quickstartEl) quickstartEl.hidden = (file !== 'first-boot.json');
       }
 
       async function loadTour(file) {
